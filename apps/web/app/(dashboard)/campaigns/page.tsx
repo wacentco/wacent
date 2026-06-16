@@ -1,10 +1,11 @@
-﻿'use client'
+'use client'
 
+import { API_URL } from '../../../lib/config'
 import { useEffect, useState } from 'react'
 import type { Campaign } from '@wacent/types'
 import type { Device } from '@wacent/types'
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? ''
+const API = API_URL
 
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('wz_token') ?? '' : ''
