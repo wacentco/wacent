@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { API_URL } from '../../lib/config'
+import { API_URL } from '../../../lib/config'
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
