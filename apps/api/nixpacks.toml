@@ -1,5 +1,6 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "pnpm"]
+nixPkgs = ["nodejs_20"]
+cmds = ["npm install -g pnpm@9.15.9"]
 
 [phases.install]
 cmds = ["pnpm install --filter @wacent/api..."]
