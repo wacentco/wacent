@@ -8,6 +8,9 @@ COPY tsconfig.base.json ./
 COPY packages/ ./packages/
 COPY apps/web/ ./apps/web/
 RUN pnpm install --filter @wacent/web...
+RUN pnpm --filter @wacent/db build
+RUN pnpm --filter @wacent/types build
+RUN pnpm --filter @wacent/queue build
 RUN pnpm --filter @wacent/web build
 EXPOSE 3000
 CMD ["pnpm", "--filter", "@wacent/web", "start"]
