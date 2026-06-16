@@ -4,7 +4,7 @@ export const ApiKeySchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
   name: z.string(),
-  prefix: z.string(), // e.g. "wz_live_ab12"
+  prefix: z.string(), // e.g. "wc_live_ab12"
   lastUsedAt: z.string().datetime().nullable(),
   revokedAt: z.string().datetime().nullable(),
   createdAt: z.string().datetime(),

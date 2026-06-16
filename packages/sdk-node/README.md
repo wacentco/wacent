@@ -1,6 +1,6 @@
 ﻿# @wacent/node
 
-Official Node.js SDK for [WACENT](https://wacent.io) — WhatsApp API & Messaging Platform.
+Official Node.js SDK for WACENT — WhatsApp API & Messaging Platform.
 
 ## Installation
 
@@ -19,7 +19,7 @@ Requires **Node.js 18+** (uses native `fetch`).
 ```typescript
 import { WACENTClient } from '@wacent/node'
 
-const WACENT = new WACENTClient({ apiKey: 'wz_live_your_api_key' })
+const WACENT = new WACENTClient({ apiKey: 'wc_live_your_api_key' })
 
 // Send a text message
 const result = await WACENT.messages.send({
@@ -34,12 +34,12 @@ console.log(result.message_id, result.status) // => "uuid" "queued"
 
 ## Authentication
 
-Generate an API key in the [WACENT Dashboard](https://app.wacent.io/api-keys). Keys are prefixed with `wz_live_`.
+Generate an API key in your WACENT dashboard under **API Keys**. Keys are prefixed with `wc_live_`.
 
 ```typescript
 const WACENT = new WACENTClient({
   apiKey: process.env.WACENT_API_KEY!,
-  baseUrl: 'https://api.wacent.io/v1', // optional, this is the default
+  baseUrl: process.env.WACENT_API_URL, // optional — defaults to your deployment's API URL
 })
 ```
 

@@ -1,7 +1,6 @@
 import makeWASocket, {
   DisconnectReason,
   type WASocket,
-  type BaileysEventMap,
 } from '@whiskeysockets/baileys'
 import { Boom } from '@hapi/boom'
 import type { Redis } from 'ioredis'
@@ -9,6 +8,7 @@ import { useRedisAuthState } from './redisAuthState.js'
 import { onQR } from '../handlers/onQR.js'
 import { onStatus } from '../handlers/onStatus.js'
 import { onMessage } from '../handlers/onMessage.js'
+import { validateWhatsAppNumber } from '../handlers/validateNumber.js'
 
 export type SessionStatus = 'disconnected' | 'connecting' | 'connected'
 
@@ -16,6 +16,23 @@ interface SessionEntry {
   socket: WASocket
   status: SessionStatus
   qr: string | null
+}
+
+const HOUR_LIMIT = 200
+const DAY_LIMIT = 1000
+
+function randInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms))
+}
+
+function midnightTTL(): number {
+  const now = new Date()
+  const midnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1))
+  return Math.ceil((midnight.getTime() - now.getTime()) / 1000)
 }
 
 export class SessionManager {
@@ -81,6 +98,30 @@ export class SessionManager {
     this.sessions.delete(deviceId)
   }
 
+  private async checkRateLimit(deviceId: string): Promise<void> {
+    const hourKey = `ratelimit:${deviceId}:hour`
+    const dayKey = `ratelimit:${deviceId}:day`
+
+    const pipe = this.redis.pipeline()
+    pipe.incr(hourKey)
+    pipe.incr(dayKey)
+    const results = await pipe.exec()
+
+    const hourCount = (results?.[0]?.[1] as number) ?? 0
+    const dayCount = (results?.[1]?.[1] as number) ?? 0
+
+    if (hourCount === 1) await this.redis.expire(hourKey, 3600)
+    if (dayCount === 1) await this.redis.expire(dayKey, midnightTTL())
+
+    if (dayCount > DAY_LIMIT) {
+      throw new Error('DAILY_LIMIT_EXCEEDED')
+    }
+    if (hourCount > HOUR_LIMIT) {
+      // Queue by sleeping until the hour window rolls over — caller handles retry
+      throw new Error('HOURLY_LIMIT_EXCEEDED')
+    }
+  }
+
   async sendMessage(
     deviceId: string,
     to: string,
@@ -90,6 +131,14 @@ export class SessionManager {
     if (!entry || entry.status !== 'connected') {
       throw new Error('Device not connected')
     }
+
+    await this.checkRateLimit(deviceId)
+
+    // Validate number is on WhatsApp (cached)
+    await validateWhatsAppNumber(to, entry.socket, this.redis)
+
+    // Anti-spam delay
+    await sleep(randInt(1000, 3000))
 
     const jid = to.replace('+', '') + '@s.whatsapp.net'
     let result

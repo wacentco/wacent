@@ -33,7 +33,7 @@ apiKeyRoutes.post('/', zValidator('json', createSchema), async (c) => {
   const { userId } = c.get('auth')
   const { name } = c.req.valid('json')
 
-  const raw = `wz_live_${randomBytes(24).toString('hex')}`
+  const raw = `wc_live_${randomBytes(24).toString('hex')}`
   const prefix = raw.slice(0, 12)
   const keyHash = createHash('sha256').update(raw).digest('hex')
 

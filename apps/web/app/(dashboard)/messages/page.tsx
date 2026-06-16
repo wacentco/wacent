@@ -8,7 +8,7 @@ import type { Device } from '@wacent/types'
 const API = API_URL
 
 function authHeaders(contentType?: string) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('wz_token') ?? '' : ''
+  const token = typeof window !== 'undefined' ? localStorage.getItem('wc_token') ?? '' : ''
   const h: Record<string, string> = { Authorization: `Bearer ${token}` }
   if (contentType) h['Content-Type'] = contentType
   return h
@@ -111,7 +111,7 @@ export default function MessagesPage() {
     form.append('file', file)
     const res = await fetch(`${API}/v1/upload`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${localStorage.getItem('wz_token') ?? ''}` },
+      headers: { Authorization: `Bearer ${localStorage.getItem('wc_token') ?? ''}` },
       body: form,
     })
     const json = await res.json() as { data?: { url: string }; error?: { message: string } }

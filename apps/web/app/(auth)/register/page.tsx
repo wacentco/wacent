@@ -3,19 +3,17 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Eye, EyeOff } from 'lucide-react'
 import { API_URL } from '../../../lib/config'
 
-function EyeIcon({ open }: { open: boolean }) {
-  return open ? (
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-    </svg>
-  ) : (
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.05-3.328M6.228 6.228A9.97 9.97 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.97 9.97 0 01-1.772 3.247M6.228 6.228L3 3m3.228 3.228l3.65 3.65M15.75 15.75l3.25 3.25M15.75 15.75a3 3 0 01-4.243-4.243" />
-    </svg>
-  )
+function getStrength(p: string): { level: number; label: string; color: string } {
+  if (p.length === 0) return { level: 0, label: '', color: '' }
+  if (p.length < 6) return { level: 1, label: 'Weak', color: 'bg-danger' }
+  if (p.length < 8 || !/[A-Z]/.test(p) || !/[0-9]/.test(p))
+    return { level: 2, label: 'Fair', color: 'bg-warning' }
+  if (p.length < 12 || !/[^A-Za-z0-9]/.test(p))
+    return { level: 3, label: 'Good', color: 'bg-primary' }
+  return { level: 4, label: 'Strong', color: 'bg-primary' }
 }
 
 export default function RegisterPage() {
@@ -26,8 +24,11 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const strength = getStrength(password)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -56,32 +57,61 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm bg-white rounded-xl shadow p-8">
-        <h1 className="text-2xl font-bold mb-6">Create your account</h1>
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: '#0A0F1E',
+        backgroundImage: 'radial-gradient(ellipse at 50% 0%, rgba(0,214,143,0.06) 0%, transparent 60%)',
+      }}
+    >
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+
+      <div
+        className="relative w-full max-w-md rounded-2xl border p-8"
+        style={{ background: 'rgba(17,24,39,0.8)', borderColor: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}
+      >
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-background font-bold text-sm">W</span>
+            </div>
+            <span className="text-xl font-bold text-text-primary">Wacent</span>
+          </div>
+          <h1 className="text-2xl font-bold text-text-primary">Create your account</h1>
+          <p className="text-sm text-text-secondary mt-1">Start sending in minutes</p>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Full Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Jane Smith"
+              className="w-full rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="you@example.com"
+              className="w-full rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -89,19 +119,35 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 minLength={8}
                 required
-                className="w-full border rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Min. 8 characters"
+                className="w-full rounded-lg px-3 py-2.5 pr-10 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
               />
               <button
                 type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary"
               >
-                <EyeIcon open={showPassword} />
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            {password.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                        i <= strength.level ? strength.color : 'bg-surface-raised'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-text-muted">{strength.label}</p>
+              </div>
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Confirm Password</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Confirm Password</label>
             <div className="relative">
               <input
                 type={showConfirm ? 'text' : 'password'}
@@ -109,29 +155,54 @@ export default function RegisterPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 minLength={8}
                 required
-                className="w-full border rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Re-enter password"
+                className="w-full rounded-lg px-3 py-2.5 pr-10 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
               />
               <button
                 type="button"
-                onClick={() => setShowConfirm((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary"
               >
-                <EyeIcon open={showConfirm} />
+                {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              required
+              className="mt-0.5 accent-primary"
+            />
+            <span className="text-xs text-text-secondary">
+              I agree to the{' '}
+              <a href="/terms" className="text-primary hover:text-primary-dark">Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy" className="text-primary hover:text-primary-dark">Privacy Policy</a>
+            </span>
+          </label>
+
+          {error && (
+            <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 text-white rounded-lg py-2 font-medium hover:bg-green-700 disabled:opacity-50"
+            disabled={loading || !agreed}
+            className="w-full rounded-lg py-2.5 text-sm font-semibold text-background bg-primary hover:bg-primary-dark disabled:opacity-50 transition-colors"
+            style={{ boxShadow: '0 0 20px rgba(0,214,143,0.3)' }}
           >
             {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
-        <p className="text-sm text-center mt-4 text-gray-600">
+
+        <p className="text-sm text-center mt-6 text-text-secondary">
           Already have an account?{' '}
-          <Link href="/login" className="text-green-600 hover:underline">
+          <Link href="/login" className="text-primary hover:text-primary-dark font-medium">
             Sign in
           </Link>
         </p>

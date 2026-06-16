@@ -1,3 +1,5 @@
 export * from './schema/index.js'
 export { db } from './client.js'
 export type { DB } from './client.js'
+export * from './crypto.js'
+export * from './userScope.js'

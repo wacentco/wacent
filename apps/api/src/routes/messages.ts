@@ -1,14 +1,17 @@
 ﻿import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
+import { Redis } from 'ioredis'
 import { db } from '@wacent/db'
 import { messages, devices } from '@wacent/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { SendMessageSchema } from '@wacent/types'
 import { createSendMessageQueue } from '@wacent/queue'
 import { apiKeyAuth } from '../middleware/auth.js'
+import { spamDetect } from '../middleware/spamDetect.js'
 
 const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
+const redis = new Redis(REDIS_URL)
 const sendMessageQueue = createSendMessageQueue({ host: new URL(REDIS_URL).hostname, port: Number(new URL(REDIS_URL).port) || 6379 })
 
 const listQuerySchema = z.object({
@@ -20,7 +23,7 @@ export const messageRoutes = new Hono()
 
 messageRoutes.use(apiKeyAuth)
 
-messageRoutes.post('/send', zValidator('json', SendMessageSchema), async (c) => {
+messageRoutes.post('/send', spamDetect(redis), zValidator('json', SendMessageSchema), async (c) => {
   const { userId } = c.get('auth')
   const input = c.req.valid('json')
 

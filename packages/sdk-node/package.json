@@ -9,11 +9,11 @@
     "messaging",
     "WACENT"
   ],
-  "author": "WACENT <hello@wacent.io>",
+  "author": "WACENT",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/WACENT/WACENT"
+    "url": "https://github.com/wacentorg/wacent"
   },
   "type": "module",
   "main": "./dist/index.cjs",

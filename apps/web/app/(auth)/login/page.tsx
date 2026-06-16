@@ -1,14 +1,16 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Eye, EyeOff } from 'lucide-react'
 import { API_URL } from '../../../lib/config'
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -31,48 +33,100 @@ export default function LoginPage() {
       return
     }
 
-    localStorage.setItem('wz_token', json.data.token)
+    localStorage.setItem('wc_token', json.data.token)
     router.push('/devices')
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm bg-white rounded-xl shadow p-8">
-        <h1 className="text-2xl font-bold mb-6">Sign in to WACENT</h1>
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: '#0A0F1E',
+        backgroundImage: 'radial-gradient(ellipse at 50% 0%, rgba(0,214,143,0.06) 0%, transparent 60%)',
+      }}
+    >
+      {/* Dot grid background */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+
+      <div
+        className="relative w-full max-w-md rounded-2xl border p-8"
+        style={{ background: 'rgba(17,24,39,0.8)', borderColor: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}
+      >
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-background font-bold text-sm">W</span>
+            </div>
+            <span className="text-xl font-bold text-text-primary">Wacent</span>
+          </div>
+          <h1 className="text-2xl font-bold text-text-primary">Welcome back</h1>
+          <p className="text-sm text-text-secondary mt-1">Sign in to your account</p>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="you@example.com"
+              className="w-full rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium text-text-secondary">Password</label>
+              <Link href="/forgot-password" className="text-xs text-primary hover:text-primary-dark">
+                Forgot password?
+              </Link>
+            </div>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full rounded-lg px-3 py-2.5 pr-10 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+
+          {error && (
+            <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 text-white rounded-lg py-2 font-medium hover:bg-green-700 disabled:opacity-50"
+            className="w-full rounded-lg py-2.5 text-sm font-semibold text-background bg-primary hover:bg-primary-dark disabled:opacity-50 transition-colors"
+            style={{ boxShadow: '0 0 20px rgba(0,214,143,0.3)' }}
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
-        <p className="text-sm text-center mt-4 text-gray-600">
+
+        <p className="text-sm text-center mt-6 text-text-secondary">
           No account?{' '}
-          <Link href="/register" className="text-green-600 hover:underline">
-            Register
+          <Link href="/register" className="text-primary hover:text-primary-dark font-medium">
+            Create one free
           </Link>
         </p>
       </div>

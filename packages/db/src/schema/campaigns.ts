@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+import { boolean, integer, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
 import { devices } from './devices.js'
 import { users } from './users.js'
 
@@ -22,6 +22,7 @@ export const campaigns = pgTable('campaigns', {
   startedAt: timestamp('started_at'),
   completedAt: timestamp('completed_at'),
   delayMs: integer('delay_ms').notNull().default(1500), // anti-spam delay
+  optinConfirmed: boolean('optin_confirmed').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })

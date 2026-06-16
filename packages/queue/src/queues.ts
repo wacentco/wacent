@@ -11,6 +11,7 @@ export const QUEUE_NAMES = {
   DELIVER_WEBHOOK: 'deliver-webhook',
   PROCESS_CAMPAIGN: 'process-campaign',
   WARM_DEVICE: 'warm-device',
+  HEALTH_CHECK: 'health-check',
 } as const
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES]
@@ -60,6 +61,17 @@ export function createWarmDeviceQueue(connection: ConnectionOptions) {
       backoff: { type: 'fixed', delay: 10000 },
       removeOnComplete: { count: 100 },
       removeOnFail: { count: 100 },
+    },
+  })
+}
+
+export function createHealthCheckQueue(connection: ConnectionOptions) {
+  return new Queue(QUEUE_NAMES.HEALTH_CHECK, {
+    connection,
+    defaultJobOptions: {
+      attempts: 1,
+      removeOnComplete: { count: 100 },
+      removeOnFail: { count: 50 },
     },
   })
 }

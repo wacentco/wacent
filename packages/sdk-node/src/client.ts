@@ -5,7 +5,7 @@ import { DevicesResource } from './resources/devices.js'
 import { MessagesResource } from './resources/messages.js'
 import { WebhooksResource } from './resources/webhooks.js'
 
-const DEFAULT_BASE_URL = 'https://api.wacent.io/v1'
+const DEFAULT_BASE_URL = 'https://api.your-domain.com/v1'
 
 export interface WACENTClientOptions {
   apiKey: string

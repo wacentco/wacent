@@ -19,7 +19,7 @@ export const planGuard = createMiddleware(async (c, next) => {
   }
 
   const [plan] = await db
-    .select({ maxDevices: plans.maxDevices })
+    .select({ maxDevices: plans.maxDevices, name: plans.name })
     .from(plans)
     .where(eq(plans.id, user.planId))
     .limit(1)
@@ -35,9 +35,10 @@ export const planGuard = createMiddleware(async (c, next) => {
 
   const deviceCount = result[0]?.value ?? 0
 
+  // Enforce per-plan limits: starter=1, growth=5, scale=15, agency=50
   if (deviceCount >= plan.maxDevices) {
     throw new HTTPException(403, {
-      message: `Device limit reached. Your plan allows ${plan.maxDevices} device(s).`,
+      message: `Device limit reached. Your ${plan.name ?? 'current'} plan allows ${plan.maxDevices} device(s). Upgrade to add more.`,
     })
   }
 

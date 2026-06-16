@@ -14,7 +14,7 @@ interface ApiKey {
 }
 
 function authHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('wz_token') ?? '' : ''
+  const token = typeof window !== 'undefined' ? localStorage.getItem('wc_token') ?? '' : ''
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 }
 

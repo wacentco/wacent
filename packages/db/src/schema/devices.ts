@@ -12,6 +12,10 @@ export const devices = pgTable('devices', {
   qrCode: text('qr_code'),           // cleared after connect
   autoWarm: boolean('auto_warm').default(false).notNull(),
   warmProgress: integer('warm_progress').default(0).notNull(), // 0–100
+  healthScore: integer('health_score').default(100).notNull(),
+  messagesSentToday: integer('messages_sent_today').default(0).notNull(),
+  messagesFailedToday: integer('messages_failed_today').default(0).notNull(),
+  lastHealthCheck: timestamp('last_health_check', { withTimezone: true }),
   lastSeenAt: timestamp('last_seen_at'),
   connectedAt: timestamp('connected_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),

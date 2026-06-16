@@ -1,4 +1,4 @@
-import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
 import { plans } from './plans.js'
 
 export const users = pgTable('users', {
@@ -10,6 +10,10 @@ export const users = pgTable('users', {
   planId: uuid('plan_id').references(() => plans.id),
   trialEndsAt: timestamp('trial_ends_at'),
   stripeCustomerId: varchar('stripe_customer_id', { length: 255 }),
+  role: varchar('role', { length: 20 }).notNull().default('user'), // user | admin
+  lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+  suspendedAt: timestamp('suspended_at', { withTimezone: true }),
+  suspendReason: text('suspend_reason'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })

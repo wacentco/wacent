@@ -1,231 +1,242 @@
 'use client'
 
+import { useEffect, useState, useCallback } from 'react'
+import { Smartphone, Trash2, WifiOff, QrCode, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { HealthBar } from '../../../components/ui/HealthBar'
+import { EmptyState } from '../../../components/ui/EmptyState'
 import { API_URL } from '../../../lib/config'
-import { useEffect, useState } from 'react'
-import type { Device } from '@wacent/types'
 
-const API = API_URL
-
-function getToken() {
-  return typeof window !== 'undefined' ? localStorage.getItem('wz_token') ?? '' : ''
-}
-
-function authHeaders() {
-  return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' }
-}
-
-// warm_progress 0–100 → estimated day 1–30
-function progressToDay(p: number) {
-  return Math.max(1, Math.round((p / 100) * 30))
-}
-
-function warmTooltip(d: Device): string {
-  if (d.warmProgress >= 100) return 'Fully warmed ✓'
-  const day = progressToDay(d.warmProgress)
-  const remaining = Math.max(0, 30 - day)
-  if (day <= 2) return `Day ~${day} — sending 5–10 msgs/day · ~${remaining} days left`
-  if (day <= 5) return `Day ~${day} — sending 20–50 msgs/day · ~${remaining} days left`
-  if (day <= 10) return `Day ~${day} — sending 100–200 msgs/day · ~${remaining} days left`
-  if (day <= 14) return `Day ~${day} — sending 300–500 msgs/day · ~${remaining} days left`
-  return `Day ~${day} — full volume · ~${remaining} days left`
-}
-
-const statusColor: Record<string, string> = {
-  connected: 'bg-green-100 text-green-800',
-  connecting: 'bg-yellow-100 text-yellow-800',
-  disconnected: 'bg-gray-100 text-gray-700',
-  banned: 'bg-red-100 text-red-800',
+interface Device {
+  id: string
+  name: string
+  phoneNumber: string | null
+  status: string
+  healthScore: number
+  autoWarm: boolean
+  warmProgress: number
 }
 
 export default function DevicesPage() {
+  const router = useRouter()
   const [devices, setDevices] = useState<Device[]>([])
   const [loading, setLoading] = useState(true)
+  const [qrModal, setQrModal] = useState<{ deviceId: string; name: string } | null>(null)
+  const [qrCode, setQrCode] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
-  const [adding, setAdding] = useState(false)
-  const [qrModal, setQrModal] = useState<{ deviceId: string; qr: string | null } | null>(null)
-  const [toggling, setToggling] = useState<string | null>(null)
+  const [creating, setCreating] = useState(false)
 
-  async function fetchDevices() {
-    const res = await fetch(`${API}/v1/devices`, { headers: authHeaders() })
+  const getToken = useCallback(() => {
+    const t = localStorage.getItem('wc_token')
+    if (!t) router.push('/login')
+    return t
+  }, [router])
+
+  const loadDevices = useCallback(async () => {
+    const token = getToken()
+    if (!token) return
+    const res = await fetch(`${API_URL}/v1/devices`, { headers: { Authorization: `Bearer ${token}` } })
+    if (!res.ok) { router.push('/login'); return }
     const json = await res.json() as { data: Device[] }
     setDevices(json.data ?? [])
     setLoading(false)
-  }
+  }, [getToken, router])
 
-  useEffect(() => { void fetchDevices() }, [])
+  useEffect(() => { void loadDevices() }, [loadDevices])
 
-  async function addDevice() {
+  async function createDevice() {
     if (!newName.trim()) return
-    setAdding(true)
-    const res = await fetch(`${API}/v1/devices`, {
+    const token = getToken()
+    if (!token) return
+    setCreating(true)
+    const res = await fetch(`${API_URL}/v1/devices`, {
       method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ name: newName, autoWarm: false }),
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName.trim() }),
     })
-    const json = await res.json() as { data: Device }
-    setAdding(false)
-    setNewName('')
-    if (json.data) {
-      setDevices((prev) => [json.data!, ...prev])
-      void openQR(json.data.id)
-    }
+    setCreating(false)
+    if (res.ok) { setNewName(''); void loadDevices() }
   }
 
-  async function openQR(deviceId: string) {
-    setQrModal({ deviceId, qr: null })
+  async function openQR(device: Device) {
+    setQrCode(null)
+    setQrModal({ deviceId: device.id, name: device.name })
+    const token = getToken()
+    if (!token) return
+
+    await fetch(`${API_URL}/v1/devices/${device.id}/reconnect`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
     const poll = setInterval(async () => {
-      const res = await fetch(`${API}/v1/devices/${deviceId}/qr`, { headers: authHeaders() })
-      const json = await res.json() as { data: { qrCode: string | null; status: string } }
-      if (json.data.status === 'connected') {
-        clearInterval(poll)
-        setQrModal(null)
-        void fetchDevices()
-        return
+      const res = await fetch(`${API_URL}/v1/devices/${device.id}/qr`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const json = await res.json() as { data: { qrCode: string | null; status: string } }
+        if (json.data?.status === 'connected') {
+          clearInterval(poll)
+          setQrModal(null)
+          setQrCode(null)
+          void loadDevices()
+        } else if (json.data?.qrCode) {
+          setQrCode(json.data.qrCode)
+        }
       }
-      if (json.data.qrCode) {
-        setQrModal({ deviceId, qr: json.data.qrCode })
-      }
-    }, 2000)
+    }, 3000)
+
+    setTimeout(() => clearInterval(poll), 300_000)
   }
 
-  async function toggleWarm(device: Device) {
-    setToggling(device.id)
-    const res = await fetch(`${API}/v1/devices/${device.id}`, {
-      method: 'PATCH',
-      headers: authHeaders(),
-      body: JSON.stringify({ autoWarm: !device.autoWarm }),
+  async function deleteDevice(id: string) {
+    if (!confirm('Delete this device?')) return
+    const token = getToken()
+    if (!token) return
+    await fetch(`${API_URL}/v1/devices/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
     })
-    const json = await res.json() as { data: Pick<Device, 'id' | 'autoWarm' | 'warmProgress'> }
-    if (json.data) {
-      setDevices((prev) =>
-        prev.map((d) =>
-          d.id === device.id ? { ...d, autoWarm: json.data.autoWarm, warmProgress: json.data.warmProgress } : d,
-        ),
-      )
-    }
-    setToggling(null)
+    void loadDevices()
+  }
+
+  async function disconnectDevice(id: string) {
+    const token = getToken()
+    if (!token) return
+    await fetch(`${API_URL}/v1/devices/${id}/disconnect`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    void loadDevices()
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Devices</h1>
-        <div className="flex gap-2">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">Devices</h1>
+          <p className="text-sm text-text-secondary mt-1">{devices.length} WhatsApp number{devices.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div className="flex items-center gap-2">
           <input
             type="text"
-            placeholder="Device name"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm"
+            onKeyDown={(e) => { if (e.key === 'Enter') void createDevice() }}
+            placeholder="Device name…"
+            className="rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors"
           />
           <button
-            onClick={addDevice}
-            disabled={adding || !newName.trim()}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+            onClick={() => void createDevice()}
+            disabled={creating || !newName.trim()}
+            className="px-4 py-2 rounded-lg bg-primary text-background text-sm font-semibold hover:bg-primary-dark disabled:opacity-50 transition-colors"
           >
-            {adding ? 'Adding…' : '+ Add device'}
+            {creating ? '…' : 'Add Device'}
           </button>
         </div>
       </div>
 
-      {loading ? (
-        <p className="text-gray-500">Loading…</p>
-      ) : devices.length === 0 ? (
-        <p className="text-gray-500">No devices yet. Add one to get started.</p>
+      {devices.length === 0 ? (
+        <EmptyState
+          icon={Smartphone}
+          title="No devices yet"
+          description="Connect your first WhatsApp number to start sending messages."
+          action={{ label: 'Add Device', onClick: () => { const el = document.querySelector('input'); el?.focus() } }}
+        />
       ) : (
-        <div className="space-y-3">
-          {devices.map((d) => (
-            <div key={d.id} className="bg-white rounded-xl border p-4">
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <p className="font-medium">{d.name}</p>
-                  <p className="text-sm text-gray-500">{d.phoneNumber ?? 'Not linked'}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {devices.map((device) => (
+            <div
+              key={device.id}
+              className="rounded-xl border p-5 flex flex-col gap-4"
+              style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-text-primary">{device.name}</p>
+                  <p className="text-xs text-text-muted mt-0.5">{device.phoneNumber ?? 'No number yet'}</p>
                 </div>
-
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColor[d.status] ?? ''}`}>
-                  {d.status}
-                </span>
-
-                {/* Auto Warmer toggle */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">Auto Warm</span>
-                  <button
-                    onClick={() => toggleWarm(d)}
-                    disabled={toggling === d.id}
-                    title={d.autoWarm ? 'Disable Auto Warmer' : 'Enable Auto Warmer'}
-                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200 disabled:opacity-50 ${
-                      d.autoWarm ? 'bg-green-500' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 mt-0.5 rounded-full bg-white shadow transition-transform duration-200 ${
-                        d.autoWarm ? 'translate-x-4' : 'translate-x-0.5'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {d.status !== 'connected' && (
-                  <button
-                    onClick={() => openQR(d.id)}
-                    className="text-sm text-green-600 hover:underline"
-                  >
-                    Connect
-                  </button>
-                )}
+                <StatusBadge status={device.status as 'connected' | 'connecting' | 'disconnected' | 'banned'} />
               </div>
 
-              {/* Warm progress bar */}
-              {d.autoWarm && (
-                <div className="mt-3 pt-3 border-t">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium text-gray-600">
-                      {d.warmProgress >= 100 ? 'Fully warmed' : `Warming — Day ~${progressToDay(d.warmProgress)} of 30`}
-                    </span>
-                    <span
-                      className="text-xs text-gray-400 cursor-help"
-                      title={warmTooltip(d)}
-                    >
-                      {d.warmProgress}% ⓘ
-                    </span>
+              <HealthBar score={device.healthScore ?? 100} />
+
+              {device.autoWarm && (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-text-secondary">
+                    <span>Auto Warmer</span>
+                    <span>{device.warmProgress}%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full rounded-full bg-surface-raised overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        d.warmProgress >= 100 ? 'bg-green-500' : 'bg-yellow-400'
-                      }`}
-                      style={{ width: `${d.warmProgress}%` }}
+                      className="h-full rounded-full bg-warning transition-all"
+                      style={{ width: `${device.warmProgress}%` }}
                     />
                   </div>
-                  {d.warmProgress < 100 && (
-                    <p className="text-xs text-gray-400 mt-1">{warmTooltip(d)}</p>
-                  )}
                 </div>
               )}
+
+              <div className="flex gap-2 mt-auto pt-1">
+                {device.status !== 'connected' ? (
+                  <button
+                    onClick={() => void openQR(device)}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-primary border border-primary/30 hover:bg-primary/10 transition-colors"
+                  >
+                    <QrCode className="w-3.5 h-3.5" /> Connect
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => void disconnectDevice(device.id)}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-secondary border border-border hover:border-warning hover:text-warning transition-colors"
+                  >
+                    <WifiOff className="w-3.5 h-3.5" /> Disconnect
+                  </button>
+                )}
+                <button
+                  onClick={() => void deleteDevice(device.id)}
+                  className="flex items-center justify-center px-2.5 py-1.5 rounded-lg text-danger/70 border border-border hover:border-danger hover:text-danger transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
       {qrModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-8 text-center max-w-xs w-full">
-            <h2 className="text-lg font-bold mb-4">Scan QR with WhatsApp</h2>
-            {qrModal.qr ? (
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(qrModal.qr)}`}
-                alt="QR code"
-                className="mx-auto"
-              />
-            ) : (
-              <p className="text-gray-500">Generating QR code…</p>
-            )}
-            <button
-              onClick={() => setQrModal(null)}
-              className="mt-4 text-sm text-gray-500 hover:underline"
-            >
-              Cancel
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
+          <div className="w-full max-w-sm rounded-2xl border p-6" style={{ background: '#111827', borderColor: '#1E2D45' }}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-semibold text-text-primary">Connect {qrModal.name}</h2>
+              <button onClick={() => { setQrModal(null); setQrCode(null) }} className="text-text-muted hover:text-text-secondary">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-xs text-text-secondary mb-4">Open WhatsApp → Linked Devices → Link a Device, then scan this QR.</p>
+            <div className="flex items-center justify-center bg-white rounded-xl p-4 mb-3">
+              {qrCode ? (
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCode)}`}
+                  alt="QR Code"
+                  className="w-48 h-48"
+                />
+              ) : (
+                <div className="w-48 h-48 flex items-center justify-center">
+                  <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-text-muted text-center">Refreshes every 30 seconds</p>
           </div>
         </div>
       )}
