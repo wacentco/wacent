@@ -1,19 +1,19 @@
-{
-  "name": "@wazap/node",
+﻿{
+  "name": "@wacent/node",
   "version": "0.1.0",
-  "description": "Official Node.js SDK for Wazap — WhatsApp API & Messaging Platform",
+  "description": "Official Node.js SDK for WACENT — WhatsApp API & Messaging Platform",
   "keywords": [
     "whatsapp",
     "api",
     "sdk",
     "messaging",
-    "wazap"
+    "WACENT"
   ],
-  "author": "Wazap <hello@wazap.sh>",
+  "author": "WACENT <hello@wacent.io>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wazap/wazap"
+    "url": "https://github.com/WACENT/WACENT"
   },
   "type": "module",
   "main": "./dist/index.cjs",

@@ -1,6 +1,6 @@
-import type { Redis } from 'ioredis'
-import { db } from '@wazap/db'
-import { devices } from '@wazap/db/schema'
+﻿import type { Redis } from 'ioredis'
+import { db } from '@wacent/db'
+import { devices } from '@wacent/db/schema'
 import { eq } from 'drizzle-orm'
 
 export async function onQR(deviceId: string, qr: string, _redis: Redis): Promise<void> {

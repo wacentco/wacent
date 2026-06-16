@@ -1,9 +1,9 @@
-import { Hono } from 'hono'
+﻿import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { createHash, randomBytes } from 'node:crypto'
-import { db } from '@wazap/db'
-import { apiKeys } from '@wazap/db/schema'
+import { db } from '@wacent/db'
+import { apiKeys } from '@wacent/db/schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { apiKeyAuth } from '../middleware/auth.js'
 

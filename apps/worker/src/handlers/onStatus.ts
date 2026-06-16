@@ -1,6 +1,6 @@
-import type { Redis } from 'ioredis'
-import { db } from '@wazap/db'
-import { devices } from '@wazap/db/schema'
+﻿import type { Redis } from 'ioredis'
+import { db } from '@wacent/db'
+import { devices } from '@wacent/db/schema'
 import { eq } from 'drizzle-orm'
 
 export async function onStatus(
@@ -20,7 +20,7 @@ export async function onStatus(
 
   // Publish for API server to fan out webhook events
   await redis.publish(
-    'wazap:device-status',
+    'WACENT:device-status',
     JSON.stringify({ deviceId, status, timestamp: new Date().toISOString() }),
   )
 }

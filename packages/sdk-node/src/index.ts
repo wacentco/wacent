@@ -1,6 +1,6 @@
-export { WazapClient } from './client.js'
-export type { WazapClientOptions } from './client.js'
-export { WazapError } from './error.js'
+﻿export { WACENTClient } from './client.js'
+export type { WACENTClientOptions } from './client.js'
+export { WACENTError } from './error.js'
 export type {
   AddRecipientsResult,
   ApiEnvelope,

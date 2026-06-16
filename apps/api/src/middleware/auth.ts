@@ -1,9 +1,9 @@
-import { createMiddleware } from 'hono/factory'
+﻿import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
 import { createHash } from 'node:crypto'
 import { jwtVerify } from 'jose'
-import { db } from '@wazap/db'
-import { apiKeys, users } from '@wazap/db/schema'
+import { db } from '@wacent/db'
+import { apiKeys, users } from '@wacent/db/schema'
 import { eq, and, isNull } from 'drizzle-orm'
 
 const JWT_SECRET = new TextEncoder().encode(process.env['JWT_SECRET'] ?? 'dev_secret')

@@ -1,11 +1,11 @@
-import { Hono } from 'hono'
+﻿import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { createHash, createHmac } from 'node:crypto'
-import { db } from '@wazap/db'
-import { webhooks, webhookLogs } from '@wazap/db/schema'
+import { db } from '@wacent/db'
+import { webhooks, webhookLogs } from '@wacent/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
-import { CreateWebhookSchema, UpdateWebhookSchema } from '@wazap/types'
+import { CreateWebhookSchema, UpdateWebhookSchema } from '@wacent/types'
 import { apiKeyAuth } from '../middleware/auth.js'
 
 const pageSchema = z.object({
@@ -142,7 +142,7 @@ webhookRoutes.post('/:id/test', async (c) => {
   const payload = {
     event: 'message.sent',
     timestamp: new Date().toISOString(),
-    data: { test: true, message: 'This is a test event from Wazap' },
+    data: { test: true, message: 'This is a test event from WACENT' },
   }
   const body = JSON.stringify(payload)
   const signature = `sha256=${createHmac('sha256', webhook.secretHash).update(body).digest('hex')}`
@@ -152,7 +152,7 @@ webhookRoutes.post('/:id/test', async (c) => {
   try {
     const res = await fetch(webhook.url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Wazap-Signature': signature },
+      headers: { 'Content-Type': 'application/json', 'X-WACENT-Signature': signature },
       body,
       signal: AbortSignal.timeout(10000),
     })

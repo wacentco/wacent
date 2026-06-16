@@ -1,9 +1,9 @@
-import { Hono } from 'hono'
+﻿import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { sql } from 'drizzle-orm'
-import { db } from '@wazap/db'
-import { messages, devices } from '@wazap/db/schema'
+import { db } from '@wacent/db'
+import { messages, devices } from '@wacent/db/schema'
 import { eq, and, gte, count } from 'drizzle-orm'
 import { jwtAuth } from '../middleware/auth.js'
 

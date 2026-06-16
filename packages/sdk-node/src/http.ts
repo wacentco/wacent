@@ -1,4 +1,4 @@
-import { WazapError } from './error.js'
+﻿import { WACENTError } from './error.js'
 import type { ApiEnvelope } from './types.js'
 
 export interface RequestOptions {
@@ -34,7 +34,7 @@ export class HttpClient {
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'User-Agent': '@wazap/node/0.1.0',
+        'User-Agent': '@wacent/node/0.1.0',
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     })
@@ -43,14 +43,14 @@ export class HttpClient {
     try {
       json = await res.json()
     } catch {
-      throw new WazapError('PARSE_ERROR', `Failed to parse response (HTTP ${res.status})`, res.status)
+      throw new WACENTError('PARSE_ERROR', `Failed to parse response (HTTP ${res.status})`, res.status)
     }
 
     if (!res.ok) {
       const errBody = json as { error?: { code?: string; message?: string } }
       const code = errBody.error?.code ?? 'API_ERROR'
       const message = errBody.error?.message ?? `Request failed with status ${res.status}`
-      throw new WazapError(code, message, res.status)
+      throw new WACENTError(code, message, res.status)
     }
 
     return json as ApiEnvelope<T>

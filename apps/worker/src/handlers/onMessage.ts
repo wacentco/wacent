@@ -1,4 +1,4 @@
-import type { BaileysEventMap } from '@whiskeysockets/baileys'
+﻿import type { BaileysEventMap } from '@whiskeysockets/baileys'
 import type { Redis } from 'ioredis'
 
 type MessageUpsert = BaileysEventMap['messages.upsert']
@@ -14,7 +14,7 @@ export async function onMessage(
     if (msg.key.fromMe) continue
 
     await redis.publish(
-      'wazap:inbound',
+      'WACENT:inbound',
       JSON.stringify({ deviceId, message: msg, timestamp: new Date().toISOString() }),
     )
   }

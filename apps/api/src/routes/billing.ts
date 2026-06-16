@@ -1,7 +1,7 @@
-import { Hono } from 'hono'
+﻿import { Hono } from 'hono'
 import Stripe from 'stripe'
-import { db } from '@wazap/db'
-import { users, subscriptions, plans } from '@wazap/db/schema'
+import { db } from '@wacent/db'
+import { users, subscriptions, plans } from '@wacent/db/schema'
 import { eq } from 'drizzle-orm'
 import { jwtAuth } from '../middleware/auth.js'
 

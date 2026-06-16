@@ -1,4 +1,4 @@
-import { Queue, Worker, type ConnectionOptions } from 'bullmq'
+﻿import { Queue, Worker, type ConnectionOptions } from 'bullmq'
 import type {
   SendMessageJobData,
   DeliverWebhookJobData,
@@ -64,5 +64,5 @@ export function createWarmDeviceQueue(connection: ConnectionOptions) {
   })
 }
 
-// Re-export Worker so consumers only need @wazap/queue
+// Re-export Worker so consumers only need @wacent/queue
 export { Worker, type ConnectionOptions }

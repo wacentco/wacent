@@ -1,8 +1,8 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Wazap — WhatsApp API Platform',
+  title: 'WACENT — WhatsApp API Platform',
   description: 'WhatsApp API & Messaging Platform. Flat Pricing. No Surprises.',
 }
 

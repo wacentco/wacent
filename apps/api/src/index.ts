@@ -17,7 +17,7 @@ import { uploadRoutes } from './routes/upload.js'
 import { contactRoutes } from './routes/contacts.js'
 import { contactListRoutes } from './routes/contact-lists.js'
 import { createWarmDeviceWorker } from './jobs/warmDevice.js'
-import { createWarmDeviceQueue } from '@wazap/queue'
+import { createWarmDeviceQueue } from '@wacent/queue'
 
 const PORT = Number(process.env['PORT'] ?? 8000)
 const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'

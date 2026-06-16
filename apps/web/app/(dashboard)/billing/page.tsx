@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 
@@ -170,7 +170,7 @@ export default function BillingPage() {
                 </button>
               ) : (
                 <a
-                  href="mailto:hello@wazap.sh?subject=Agency Plan"
+                  href="mailto:hello@wacent.io?subject=Agency Plan"
                   className="text-center text-sm font-medium py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
                   Contact us

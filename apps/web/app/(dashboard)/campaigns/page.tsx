@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
-import type { Campaign } from '@wazap/types'
-import type { Device } from '@wazap/types'
+import type { Campaign } from '@wacent/types'
+import type { Device } from '@wacent/types'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? ''
 

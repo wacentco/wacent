@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 
 const navItems = [
   { href: '/devices', label: 'Devices' },
@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-screen bg-gray-50">
       <aside className="w-56 bg-white border-r flex flex-col">
         <div className="px-6 py-5 border-b">
-          <span className="text-lg font-bold text-green-600">Wazap</span>
+          <span className="text-lg font-bold text-green-600">WACENT</span>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map((item) => (

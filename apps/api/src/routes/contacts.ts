@@ -1,10 +1,10 @@
-import { Hono } from 'hono'
+﻿import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
-import { db } from '@wazap/db'
-import { contacts } from '@wazap/db/schema'
+import { db } from '@wacent/db'
+import { contacts } from '@wacent/db/schema'
 import { eq, and, or, ilike, desc, count } from 'drizzle-orm'
-import { CreateContactSchema, UpdateContactSchema } from '@wazap/types'
+import { CreateContactSchema, UpdateContactSchema } from '@wacent/types'
 import { apiKeyAuth } from '../middleware/auth.js'
 
 const listQuerySchema = z.object({

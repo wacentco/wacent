@@ -1,5 +1,5 @@
-{
-  "name": "@wazap/worker",
+﻿{
+  "name": "@wacent/worker",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -12,9 +12,9 @@
   "dependencies": {
     "@hapi/boom": "^10.0.1",
     "@hono/node-server": "^1.12.0",
-    "@wazap/db": "workspace:*",
-    "@wazap/queue": "workspace:*",
-    "@wazap/types": "workspace:*",
+    "@wacent/db": "workspace:*",
+    "@wacent/queue": "workspace:*",
+    "@wacent/types": "workspace:*",
     "@whiskeysockets/baileys": "^6.7.9",
     "bullmq": "^5.12.0",
     "drizzle-orm": "^0.41.0",

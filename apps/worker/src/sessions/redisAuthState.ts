@@ -1,8 +1,8 @@
-import type { AuthenticationState, SignalDataTypeMap } from '@whiskeysockets/baileys'
+﻿import type { AuthenticationState, SignalDataTypeMap } from '@whiskeysockets/baileys'
 import { BufferJSON, initAuthCreds } from '@whiskeysockets/baileys'
 import type { Redis } from 'ioredis'
 
-const KEY_PREFIX = (deviceId: string) => `wazap:auth:${deviceId}`
+const KEY_PREFIX = (deviceId: string) => `WACENT:auth:${deviceId}`
 
 export async function useRedisAuthState(
   deviceId: string,

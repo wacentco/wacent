@@ -1,5 +1,5 @@
-{
-  "name": "@wazap/api",
+﻿{
+  "name": "@wacent/api",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -13,9 +13,9 @@
     "@aws-sdk/client-s3": "^3.1069.0",
     "@hono/node-server": "^1.12.0",
     "@hono/zod-validator": "^0.2.2",
-    "@wazap/db": "workspace:*",
-    "@wazap/queue": "workspace:*",
-    "@wazap/types": "workspace:*",
+    "@wacent/db": "workspace:*",
+    "@wacent/queue": "workspace:*",
+    "@wacent/types": "workspace:*",
     "bullmq": "^5.12.0",
     "drizzle-orm": "^0.41.0",
     "hono": "^4.4.0",

@@ -1,7 +1,7 @@
-import { createMiddleware } from 'hono/factory'
+﻿import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
-import { db } from '@wazap/db'
-import { devices, users, plans } from '@wazap/db/schema'
+import { db } from '@wacent/db'
+import { devices, users, plans } from '@wacent/db/schema'
 import { eq, and, count } from 'drizzle-orm'
 
 // Must be used after apiKeyAuth

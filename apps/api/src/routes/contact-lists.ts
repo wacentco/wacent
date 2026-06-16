@@ -1,8 +1,8 @@
-import { Hono } from 'hono'
+﻿import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
-import { db } from '@wazap/db'
-import { contactLists, contactListMembers, contacts } from '@wazap/db/schema'
+import { db } from '@wacent/db'
+import { contactLists, contactListMembers, contacts } from '@wacent/db/schema'
 import { eq, and, desc, count, sql } from 'drizzle-orm'
 import { apiKeyAuth } from '../middleware/auth.js'
 

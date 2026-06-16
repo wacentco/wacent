@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 
 const PLANS = [
   { name: 'Starter', price: '$2.90', devices: 1, highlight: false },
@@ -22,7 +22,7 @@ export default function LandingPage() {
       {/* Nav */}
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="text-xl font-bold text-green-600">Wazap</span>
+          <span className="text-xl font-bold text-green-600">WACENT</span>
           <nav className="hidden md:flex items-center gap-8 text-sm text-gray-600">
             <a href="#features" className="hover:text-gray-900">Features</a>
             <a href="#pricing" className="hover:text-gray-900">Pricing</a>
@@ -74,14 +74,14 @@ export default function LandingPage() {
       <section className="max-w-3xl mx-auto px-6 pb-20">
         <div className="bg-gray-950 rounded-2xl p-6 overflow-x-auto">
           <pre className="text-sm text-gray-300 font-mono leading-relaxed">
-{`curl -X POST https://api.wazap.sh/v1/messages/send \\
+{`curl -X POST https://api.wacent.io/v1/messages/send \\
   -H "Authorization: Bearer wz_live_xxxxxxxxxxxx" \\
   -H "Content-Type: application/json" \\
   -d '{
     "whatsapp_account_id": "device-uuid",
     "phone_number": "+628123456789",
     "type": "text",
-    "content": "Hello from Wazap! 🚀"
+    "content": "Hello from WACENT! 🚀"
   }'`}
           </pre>
         </div>
@@ -156,12 +156,12 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t py-10">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <span className="font-bold text-green-600">Wazap</span>
-          <p>© {new Date().getFullYear()} Wazap. Built with ♥ for developers.</p>
+          <span className="font-bold text-green-600">WACENT</span>
+          <p>© {new Date().getFullYear()} WACENT. Built with ♥ for developers.</p>
           <div className="flex gap-6">
             <a href="/terms" className="hover:text-gray-600">Terms</a>
             <a href="/privacy" className="hover:text-gray-600">Privacy</a>
-            <a href="mailto:hello@wazap.sh" className="hover:text-gray-600">Contact</a>
+            <a href="mailto:hello@wacent.io" className="hover:text-gray-600">Contact</a>
           </div>
         </div>
       </footer>

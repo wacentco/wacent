@@ -1,25 +1,25 @@
-import { HttpClient } from './http.js'
+﻿import { HttpClient } from './http.js'
 import { CampaignsResource } from './resources/campaigns.js'
 import { ContactsResource } from './resources/contacts.js'
 import { DevicesResource } from './resources/devices.js'
 import { MessagesResource } from './resources/messages.js'
 import { WebhooksResource } from './resources/webhooks.js'
 
-const DEFAULT_BASE_URL = 'https://api.wazap.sh/v1'
+const DEFAULT_BASE_URL = 'https://api.wacent.io/v1'
 
-export interface WazapClientOptions {
+export interface WACENTClientOptions {
   apiKey: string
   baseUrl?: string
 }
 
-export class WazapClient {
+export class WACENTClient {
   readonly messages: MessagesResource
   readonly devices: DevicesResource
   readonly campaigns: CampaignsResource
   readonly contacts: ContactsResource
   readonly webhooks: WebhooksResource
 
-  constructor(options: WazapClientOptions) {
+  constructor(options: WACENTClientOptions) {
     const http = new HttpClient(options.apiKey, options.baseUrl ?? DEFAULT_BASE_URL)
     this.messages = new MessagesResource(http)
     this.devices = new DevicesResource(http)
