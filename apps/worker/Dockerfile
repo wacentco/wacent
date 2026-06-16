@@ -8,7 +8,7 @@ COPY pnpm-lock.yaml ./
 COPY tsconfig.base.json ./
 COPY packages/ ./packages/
 COPY apps/worker/ ./apps/worker/
-RUN pnpm install --filter @wacent/worker...
+RUN pnpm install
 RUN pnpm --filter @wacent/db build
 RUN pnpm --filter @wacent/types build
 RUN pnpm --filter @wacent/queue build
