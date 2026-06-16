@@ -22,11 +22,12 @@
     "seed": "tsx src/seed.ts"
   },
   "dependencies": {
+    "@types/node": "^20.14.0",
+    "@types/pg": "^8.11.0",
     "drizzle-orm": "^0.41.0",
     "pg": "^8.12.0"
   },
   "devDependencies": {
-    "@types/pg": "^8.11.0",
     "drizzle-kit": "^0.31.0",
     "tsx": "^4.19.0",
     "typescript": "^5.4.0"
