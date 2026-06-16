@@ -1,0 +1,56 @@
+import { serve } from '@hono/node-server'
+import { Hono } from 'hono'
+import { logger } from 'hono/logger'
+import { HTTPException } from 'hono/http-exception'
+import { Redis } from 'ioredis'
+import { SessionManager } from './sessions/SessionManager.js'
+import { createInternalApi } from './api/internal.js'
+import { createSendMessageQueue, QUEUE_NAMES } from '@wazap/queue'
+import { Worker } from 'bullmq'
+import { db } from '@wazap/db'
+import { messages } from '@wazap/db/schema'
+import { eq } from 'drizzle-orm'
+import type { SendMessageJobData } from '@wazap/queue'
+
+const PORT = Number(process.env['PORT'] ?? 3001)
+const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
+const redisConn = { host: new URL(REDIS_URL).hostname, port: Number(new URL(REDIS_URL).port) || 6379 }
+
+const redis = new Redis(REDIS_URL)
+const manager = new SessionManager(redis)
+
+// Process send-message jobs
+new Worker<SendMessageJobData>(
+  QUEUE_NAMES.SEND_MESSAGE,
+  async (job: import('bullmq').Job<SendMessageJobData>) => {
+    const { messageId, deviceId, toNumber, type, content, mediaUrl, caption } = job.data
+
+    const waMessageId = await manager.sendMessage(deviceId, toNumber, { type, content, mediaUrl, caption })
+
+    await db
+      .update(messages)
+      .set({ status: 'sent', waMessageId, sentAt: new Date() })
+      .where(eq(messages.id, messageId))
+  },
+  {
+    connection: redisConn,
+    concurrency: 5,
+  },
+)
+
+const app = new Hono()
+app.use(logger())
+app.get('/health', (c) => c.json({ status: 'ok' }))
+app.route('/', createInternalApi(manager))
+
+app.onError((err, c) => {
+  if (err instanceof HTTPException) {
+    return c.json({ error: { code: 'HTTP_ERROR', message: err.message } }, err.status)
+  }
+  console.error(err)
+  return c.json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } }, 500)
+})
+
+serve({ fetch: app.fetch, port: PORT }, () => {
+  console.log(`Worker server running on http://localhost:${PORT}`)
+})
