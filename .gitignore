@@ -1,0 +1,88 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ── Build outputs ─────────────────────────────────────────────────────────────
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# ── Turbo ─────────────────────────────────────────────────────────────────────
+.turbo/
+
+# ── Environment variables ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+apps/api/.env
+apps/worker/.env
+apps/web/.env.local
+
+# ── Secrets / keys ────────────────────────────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+serviceAccountKey.json
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Editor ────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+*~
+
+# ── Database ──────────────────────────────────────────────────────────────────
+drizzle/meta/
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Redis / session data ──────────────────────────────────────────────────────
+dump.rdb
+appendonly.aof
+
+# ── Test / coverage ───────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+*.lcov
+
+# ── Project tracking (local only) ────────────────────────────────────────────
+CLAUDE.md
+PROGRESS.md
+TODO.md
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+.cache/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+docker-compose.override.yml

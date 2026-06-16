@@ -1,0 +1,23 @@
+{
+  "name": "wazap",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "db:migrate": "pnpm --filter @wazap/db migrate",
+    "db:generate": "pnpm --filter @wazap/db generate",
+    "db:studio": "pnpm --filter @wazap/db studio",
+    "db:seed": "pnpm --filter @wazap/db seed"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
