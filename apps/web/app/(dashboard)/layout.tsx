@@ -2,8 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { clearAuth } from '../../lib/auth'
 import { signOut } from 'next-auth/react'
+import { Loader2 } from 'lucide-react'
 import {
   LayoutDashboard,
   Smartphone,
@@ -34,8 +36,10 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [loggingOut, setLoggingOut] = useState(false)
 
   async function handleLogout() {
+    setLoggingOut(true)
     await fetch('/api/logout', { method: 'POST' })
     clearAuth()
     await signOut({ redirect: false })
@@ -43,7 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen" style={{ background: '#0A0F1E' }}>
+    <div className="flex min-h-screen" style={{ background: '#0A0F1E', cursor: loggingOut ? 'wait' : undefined }}>
       {/* Sidebar */}
       <aside
         className="w-60 flex flex-col fixed inset-y-0 left-0 z-50 border-r"
@@ -89,10 +93,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="px-3 py-4 border-t" style={{ borderColor: '#1E2D45' }}>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm text-text-secondary hover:text-danger hover:bg-danger/5 transition-colors"
+            disabled={loggingOut}
+            className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm text-text-secondary hover:text-danger hover:bg-danger/5 transition-colors disabled:opacity-60 disabled:cursor-wait"
           >
-            <LogOut className="w-4 h-4 flex-shrink-0" />
-            Sign out
+            {loggingOut
+              ? <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" />
+              : <LogOut className="w-4 h-4 flex-shrink-0" />}
+            {loggingOut ? 'Signing out…' : 'Sign out'}
           </button>
         </div>
       </aside>

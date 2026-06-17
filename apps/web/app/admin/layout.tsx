@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { getToken, getRole, clearAuth } from '../../lib/auth'
 import { signOut } from 'next-auth/react'
 import {
@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Server,
   LogOut,
+  Loader2,
 } from 'lucide-react'
 
 const navItems = [
@@ -27,6 +28,7 @@ const navItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [loggingOut, setLoggingOut] = useState(false)
 
   useEffect(() => {
     if (!getToken()) { router.push('/login'); return }
@@ -34,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [router])
 
   async function handleLogout() {
+    setLoggingOut(true)
     await fetch('/api/logout', { method: 'POST' })
     clearAuth()
     await signOut({ redirect: false })
@@ -41,7 +44,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen" style={{ background: '#0A0F1E' }}>
+    <div className="flex min-h-screen" style={{ background: '#0A0F1E', cursor: loggingOut ? 'wait' : undefined }}>
       <aside
         className="w-60 flex flex-col fixed inset-y-0 left-0 z-50 border-r"
         style={{ background: '#1A0A0A', borderColor: '#3D1515' }}
@@ -82,10 +85,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="px-3 py-4 border-t" style={{ borderColor: '#3D1515' }}>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm text-text-secondary hover:text-danger hover:bg-danger/5 transition-colors"
+            disabled={loggingOut}
+            className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm text-text-secondary hover:text-danger hover:bg-danger/5 transition-colors disabled:opacity-60 disabled:cursor-wait"
           >
-            <LogOut className="w-4 h-4 flex-shrink-0" />
-            Sign out
+            {loggingOut
+              ? <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" />
+              : <LogOut className="w-4 h-4 flex-shrink-0" />}
+            {loggingOut ? 'Signing out…' : 'Sign out'}
           </button>
         </div>
       </aside>
