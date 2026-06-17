@@ -7,10 +7,12 @@ export async function onStatus(
   deviceId: string,
   status: 'connected' | 'disconnected',
   redis: Redis,
+  phoneNumber?: string | null,
 ): Promise<void> {
   await db
     .update(devices)
     .set({
+      ...(status === 'connected' && { phoneNumber: phoneNumber ?? null }),
       status,
       qrCode: status === 'connected' ? null : undefined,
       connectedAt: status === 'connected' ? new Date() : undefined,

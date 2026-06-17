@@ -73,7 +73,10 @@ export class SessionManager {
       if (connection === 'open') {
         entry.status = 'connected'
         entry.qr = null
-        void onStatus(deviceId, 'connected', this.redis)
+        // Extract phone number: "628xxx:12@s.whatsapp.net" → "628xxx" (no '+', with country code)
+        const rawId = socket.user?.id
+        const phoneNumber = rawId?.split('@')[0]?.split(':')[0] ?? null
+        void onStatus(deviceId, 'connected', this.redis, phoneNumber)
       }
 
       if (connection === 'close') {
