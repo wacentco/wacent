@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/']
-const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password']
+const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/google-callback', '/']
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/google-callback']
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl

@@ -1,38 +1,12 @@
 'use client'
 
-import { signIn, useSession } from 'next-auth/react'
-import { useEffect } from 'react'
-import { API_URL } from '../lib/config'
-import { setAuth } from '../lib/auth'
-import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 
 export function GoogleSignInButton({ label = 'Continue with Google' }: { label?: string }) {
-  const { data: session } = useSession()
-  const router = useRouter()
-
-  const idToken = (session as { googleIdToken?: string } | null)?.googleIdToken
-
-  useEffect(() => {
-    if (idToken) void exchangeToken(idToken)
-  }, [idToken])
-
-  async function exchangeToken(idToken: string) {
-    const res = await fetch(`${API_URL}/v1/auth/google/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    })
-    const json = await res.json() as { data?: { token: string; user: { role: string } } }
-    if (json.data) {
-      setAuth(json.data.token, json.data.user.role)
-      router.push('/devices')
-    }
-  }
-
   return (
     <button
       type="button"
-      onClick={() => void signIn('google')}
+      onClick={() => void signIn('google', { callbackUrl: '/google-callback' })}
       className="w-full flex items-center justify-center gap-3 rounded-lg py-2.5 text-sm font-medium border transition-colors hover:bg-white/5"
       style={{ borderColor: '#1E2D45', color: '#F1F5F9' }}
     >
