@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { getToken, getRole, clearAuth } from '../../lib/auth'
+import { signOut } from 'next-auth/react'
 import {
   LayoutDashboard,
   Users,
@@ -35,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   async function handleLogout() {
     await fetch('/api/logout', { method: 'POST' })
     clearAuth()
+    await signOut({ redirect: false })
     router.push('/login')
   }
 

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { getRole, clearAuth } from '../../lib/auth'
+import { signOut } from 'next-auth/react'
 import {
   LayoutDashboard,
   Smartphone,
@@ -43,6 +44,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   async function handleLogout() {
     await fetch('/api/logout', { method: 'POST' })
     clearAuth()
+    await signOut({ redirect: false })
     router.push('/login')
   }
 
