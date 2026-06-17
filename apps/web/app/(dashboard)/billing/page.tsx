@@ -93,6 +93,21 @@ export default function BillingPage() {
         <p className="text-sm text-text-secondary mt-1">Flat pricing. No per-message fees. No surprises.</p>
       </div>
 
+      {!loading && sub?.subStatus === 'trialing' && sub.currentPeriodEnd && (() => {
+        const daysLeft = Math.ceil((new Date(sub.currentPeriodEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        return (
+          <div className="rounded-xl border border-yellow-500/30 p-4" style={{ background: 'rgba(234,179,8,0.08)' }}>
+            <p className="text-sm font-semibold text-yellow-400">
+              You are on a 14-day free trial of the Starter plan.
+            </p>
+            <p className="text-xs text-yellow-400/70 mt-0.5">
+              {daysLeft > 0 ? `${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining.` : 'Trial ends today.'}{' '}
+              Upgrade to continue after trial ends.
+            </p>
+          </div>
+        )
+      })()}
+
       {!loading && sub?.planName && (
         <div className="rounded-xl border p-5 flex items-center justify-between" style={{ background: 'rgba(0,214,143,0.06)', borderColor: 'rgba(0,214,143,0.2)' }}>
           <div className="flex items-center gap-3">

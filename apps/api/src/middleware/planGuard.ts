@@ -1,8 +1,8 @@
 ﻿import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
 import { db } from '@wacent/db'
-import { devices, users, plans } from '@wacent/db/schema'
-import { eq, and, count } from 'drizzle-orm'
+import { devices, users, plans, subscriptions } from '@wacent/db/schema'
+import { eq, and, count, inArray } from 'drizzle-orm'
 
 // Must be used after apiKeyAuth
 export const planGuard = createMiddleware(async (c, next) => {
@@ -15,6 +15,19 @@ export const planGuard = createMiddleware(async (c, next) => {
     .limit(1)
 
   if (!user?.planId) {
+    throw new HTTPException(403, { message: 'No active plan' })
+  }
+
+  const [sub] = await db
+    .select({ status: subscriptions.status })
+    .from(subscriptions)
+    .where(and(
+      eq(subscriptions.userId, userId),
+      inArray(subscriptions.status, ['active', 'trialing']),
+    ))
+    .limit(1)
+
+  if (!sub) {
     throw new HTTPException(403, { message: 'No active plan' })
   }
 

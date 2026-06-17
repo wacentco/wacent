@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { createHash } from 'node:crypto'
 import { SignJWT } from 'jose'
 import { db } from '@wacent/db'
-import { users } from '@wacent/db/schema'
+import { users, plans, subscriptions } from '@wacent/db/schema'
 import { eq, or } from 'drizzle-orm'
 import { jwtAuth } from '../middleware/auth.js'
 import { flexAuth } from '../middleware/flexAuth.js'
@@ -57,6 +57,18 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
   })
   if (!user) {
     return c.json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to create user' } }, 500)
+  }
+
+  const [starterPlan] = await db.select().from(plans).where(eq(plans.name, 'starter')).limit(1)
+  if (starterPlan) {
+    await db.insert(subscriptions).values({
+      userId: user.id,
+      planId: starterPlan.id,
+      status: 'trialing',
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+    })
+    await db.update(users).set({ planId: starterPlan.id }).where(eq(users.id, user.id))
   }
 
   const token = await new SignJWT({ sub: user.id })
@@ -146,6 +158,18 @@ authRoutes.post('/google/token', zValidator('json', z.object({ idToken: z.string
     userId = created.id
     userName = created.name
     userRole = created.role
+
+    const [starterPlan] = await db.select().from(plans).where(eq(plans.name, 'starter')).limit(1)
+    if (starterPlan) {
+      await db.insert(subscriptions).values({
+        userId: created.id,
+        planId: starterPlan.id,
+        status: 'trialing',
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      })
+      await db.update(users).set({ planId: starterPlan.id }).where(eq(users.id, created.id))
+    }
   }
 
   const token = await new SignJWT({ sub: userId })
