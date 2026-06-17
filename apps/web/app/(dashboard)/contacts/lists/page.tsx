@@ -1,16 +1,12 @@
-'use client'
+﻿'use client'
 
 import { API_URL } from '../../../../lib/config'
+import { authHeaders } from '../../../../lib/auth'
 import { useEffect, useState, useCallback } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { Contact } from '@wacent/types'
 
 const API = API_URL
-
-function authHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('wc_token') ?? '' : ''
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-}
 
 interface ContactList {
   id: string
@@ -118,20 +114,20 @@ export default function ContactListsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <a href="/contacts" className="text-sm text-text-secondary hover:text-text-primary transition-colors">← Contacts</a>
+        <a href="/contacts" className="text-sm text-text-secondary hover:text-text-primary transition-colors">â† Contacts</a>
         <span className="text-text-muted">/</span>
         <h1 className="text-2xl font-bold text-text-primary">Contact Lists</h1>
       </div>
 
       <div className="flex gap-2">
-        <input type="text" placeholder="New list name…" value={newName}
+        <input type="text" placeholder="New list nameâ€¦" value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') void createList() }}
           className="rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors" />
         <button onClick={createList} disabled={creating || !newName.trim()}
           className="flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
           style={{ cursor: creating ? 'not-allowed' : 'pointer' }}>
-          {creating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Creating…</> : '+ Create list'}
+          {creating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Creatingâ€¦</> : '+ Create list'}
         </button>
       </div>
 
@@ -217,7 +213,7 @@ export default function ContactListsPage() {
 
               <div className="border-t px-5 py-4" style={{ borderColor: '#1E2D45' }}>
                 <p className="text-xs font-medium text-text-muted mb-2 uppercase tracking-wide">Add Contacts</p>
-                <input type="text" placeholder="Search contacts…" value={contactSearch}
+                <input type="text" placeholder="Search contactsâ€¦" value={contactSearch}
                   onChange={(e) => setContactSearch(e.target.value)}
                   className="w-full rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors mb-2" />
                 <div className="divide-y max-h-48 overflow-y-auto border rounded-lg" style={{ borderColor: '#1E2D45' }}>

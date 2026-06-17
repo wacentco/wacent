@@ -1,10 +1,11 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { HealthBar } from '../../../components/ui/HealthBar'
 import { API_URL } from '../../../lib/config'
+import { authHeaders, getToken } from '../../../lib/auth'
 
 interface DeviceRow {
   id: string
@@ -17,7 +18,7 @@ interface DeviceRow {
 }
 
 function maskPhone(phone: string | null) {
-  if (!phone) return '—'
+  if (!phone) return 'â€”'
   if (phone.length < 8) return phone
   return phone.slice(0, 5) + '****' + phone.slice(-3)
 }
@@ -27,22 +28,16 @@ export default function AdminDevicesPage() {
   const [devices, setDevices] = useState<DeviceRow[]>([])
   const [loading, setLoading] = useState(true)
 
-  const getToken = useCallback(() => {
-    const t = localStorage.getItem('wc_token')
-    if (!t) router.push('/login')
-    return t
-  }, [router])
-
   useEffect(() => {
     const token = getToken()
-    if (!token) return
+    if (!token) { router.push('/login'); return }
     void fetch(`${API_URL}/admin/devices?limit=50`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((json: { data: DeviceRow[] }) => {
         setDevices(json.data ?? [])
         setLoading(false)
       })
-  }, [getToken])
+  }, [router])
 
   return (
     <div className="space-y-6">

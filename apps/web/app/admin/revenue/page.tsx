@@ -1,10 +1,11 @@
-'use client'
+﻿'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { DollarSign, TrendingUp } from 'lucide-react'
 import { StatCard } from '../../../components/ui/StatCard'
 import { API_URL } from '../../../lib/config'
+import { authHeaders, getToken } from '../../../lib/auth'
 
 interface Revenue {
   totalRevenue: number
@@ -17,22 +18,16 @@ export default function AdminRevenuePage() {
   const [revenue, setRevenue] = useState<Revenue | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const getToken = useCallback(() => {
-    const t = localStorage.getItem('wc_token')
-    if (!t) router.push('/login')
-    return t
-  }, [router])
-
   useEffect(() => {
     const token = getToken()
-    if (!token) return
+    if (!token) { router.push('/login'); return }
     void fetch(`${API_URL}/admin/revenue`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((json: { data: Revenue }) => {
         setRevenue(json.data)
         setLoading(false)
       })
-  }, [getToken])
+  }, [router])
 
   if (loading) {
     return (

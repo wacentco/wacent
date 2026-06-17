@@ -1,6 +1,7 @@
-'use client'
+﻿'use client'
 
 import { API_URL } from '../../../lib/config'
+import { authHeaders } from '../../../lib/auth'
 import { useEffect, useState } from 'react'
 import { Loader2, Copy, Check } from 'lucide-react'
 
@@ -12,11 +13,6 @@ interface ApiKey {
   prefix: string
   lastUsedAt: string | null
   createdAt: string
-}
-
-function authHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('wc_token') ?? '' : ''
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 }
 
 export default function ApiKeysPage() {
@@ -96,14 +92,14 @@ export default function ApiKeysPage() {
             className="flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
             style={{ cursor: creating ? 'not-allowed' : 'pointer' }}
           >
-            {creating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Creating…</> : '+ Create key'}
+            {creating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Creatingâ€¦</> : '+ Create key'}
           </button>
         </div>
       </div>
 
       {newKeyValue && (
         <div className="p-4 rounded-xl border" style={{ background: 'rgba(0,214,143,0.06)', borderColor: 'rgba(0,214,143,0.3)' }}>
-          <p className="text-sm font-medium text-primary mb-2">Save this key — it will not be shown again:</p>
+          <p className="text-sm font-medium text-primary mb-2">Save this key â€” it will not be shown again:</p>
           <div className="flex items-center gap-2">
             <code className="flex-1 text-sm font-mono text-text-primary bg-surface border border-border rounded px-3 py-2 break-all">{newKeyValue}</code>
             <button onClick={copyKey} className="shrink-0 p-2 rounded-lg border border-border hover:border-primary text-text-secondary hover:text-primary transition-colors">
@@ -126,7 +122,7 @@ export default function ApiKeysPage() {
             <div key={k.id} className="rounded-xl border p-4 flex items-center gap-4" style={{ background: 'rgba(255,255,255,0.02)', borderColor: '#1E2D45' }}>
               <div className="flex-1">
                 <p className="font-medium text-text-primary">{k.name}</p>
-                <p className="text-sm text-text-muted font-mono mt-0.5">{k.prefix}••••••••••••</p>
+                <p className="text-sm text-text-muted font-mono mt-0.5">{k.prefix}â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢</p>
               </div>
               <p className="text-xs text-text-muted">
                 {k.lastUsedAt ? `Last used ${new Date(k.lastUsedAt).toLocaleDateString()}` : 'Never used'}
@@ -137,7 +133,7 @@ export default function ApiKeysPage() {
                 className="flex items-center gap-1.5 text-sm text-danger hover:text-danger/80 disabled:opacity-50 transition-colors"
                 style={{ cursor: revokingId === k.id ? 'not-allowed' : 'pointer' }}
               >
-                {revokingId === k.id ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Revoking…</> : 'Revoke'}
+                {revokingId === k.id ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Revokingâ€¦</> : 'Revoke'}
               </button>
             </div>
           ))}

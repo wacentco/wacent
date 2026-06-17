@@ -1,10 +1,11 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Users, Smartphone, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react'
 import { StatCard } from '../../components/ui/StatCard'
 import { API_URL } from '../../lib/config'
+import { authHeaders, getToken } from '../../lib/auth'
 
 interface Overview {
   mrr: number
@@ -31,7 +32,7 @@ export default function AdminOverviewPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('wc_token')
+    const token = getToken()
     if (!token) { router.push('/login'); return }
 
     const headers = { Authorization: `Bearer ${token}` }

@@ -7,12 +7,25 @@
   --foreground: #F1F5F9;
   --card: #111827;
   --card-foreground: #F1F5F9;
+  --popover: #111827;
+  --popover-foreground: #F1F5F9;
   --border: #1E2D45;
   --input: #1A2236;
+  --ring: #00D68F;
   --primary: #00D68F;
   --primary-foreground: #0A0F1E;
+  --secondary: #1A2236;
+  --secondary-foreground: #F1F5F9;
+  --accent: #1A2236;
+  --accent-foreground: #F1F5F9;
+  --destructive: #EF4444;
+  --destructive-foreground: #F1F5F9;
   --muted: #1A2236;
   --muted-foreground: #94A3B8;
+  --radius: 0.75rem;
+  --success: #00D68F;
+  --warning: #F59E0B;
+  --danger: #EF4444;
 }
 
 @layer base {

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useCallback } from 'react'
 import { Smartphone, Trash2, WifiOff, QrCode, X } from 'lucide-react'
@@ -7,6 +7,7 @@ import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { HealthBar } from '../../../components/ui/HealthBar'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { API_URL } from '../../../lib/config'
+import { authHeaders, getToken } from '../../../lib/auth'
 
 interface Device {
   id: string
@@ -27,21 +28,15 @@ export default function DevicesPage() {
   const [newName, setNewName] = useState('')
   const [creating, setCreating] = useState(false)
 
-  const getToken = useCallback(() => {
-    const t = localStorage.getItem('wc_token')
-    if (!t) router.push('/login')
-    return t
-  }, [router])
-
   const loadDevices = useCallback(async () => {
     const token = getToken()
-    if (!token) return
+    if (!token) { router.push('/login'); return }
     const res = await fetch(`${API_URL}/v1/devices`, { headers: { Authorization: `Bearer ${token}` } })
     if (!res.ok) { router.push('/login'); return }
     const json = await res.json() as { data: Device[] }
     setDevices(json.data ?? [])
     setLoading(false)
-  }, [getToken, router])
+  }, [router])
 
   useEffect(() => { void loadDevices() }, [loadDevices])
 
@@ -132,7 +127,7 @@ export default function DevicesPage() {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') void createDevice() }}
-            placeholder="Device name…"
+            placeholder="Device nameâ€¦"
             className="rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors"
           />
           <button
@@ -140,7 +135,7 @@ export default function DevicesPage() {
             disabled={creating || !newName.trim()}
             className="px-4 py-2 rounded-lg bg-primary text-background text-sm font-semibold hover:bg-primary-dark disabled:opacity-50 transition-colors"
           >
-            {creating ? '…' : 'Add Device'}
+            {creating ? 'â€¦' : 'Add Device'}
           </button>
         </div>
       </div>
@@ -222,8 +217,8 @@ export default function DevicesPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-text-secondary mb-4">Open WhatsApp → Linked Devices → Link a Device, then scan this QR.</p>
-            <div className="flex items-center justify-center bg-white rounded-xl p-4 mb-3">
+            <p className="text-xs text-text-secondary mb-4">Open WhatsApp â†’ Linked Devices â†’ Link a Device, then scan this QR.</p>
+            <div className="flex items-center justify-center bg-surface-raised rounded-xl p-4 mb-3">
               {qrCode ? (
                 <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCode)}`}

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { getRole, clearAuth } from '../../lib/auth'
 import {
   LayoutDashboard,
   Smartphone,
@@ -36,12 +37,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    setIsAdmin(localStorage.getItem('wc_role') === 'admin')
+    setIsAdmin(getRole() === 'admin')
   }, [])
 
-  function handleLogout() {
-    localStorage.removeItem('wc_token')
-    localStorage.removeItem('wc_role')
+  async function handleLogout() {
+    await fetch('/api/logout', { method: 'POST' })
+    clearAuth()
     router.push('/login')
   }
 

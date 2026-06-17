@@ -1,18 +1,12 @@
 'use client'
 
 import { API_URL } from '../../../lib/config'
+import { authHeaders, getToken } from '../../../lib/auth'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { Message } from '@wacent/types'
 import type { Device } from '@wacent/types'
 
 const API = API_URL
-
-function authHeaders(contentType?: string) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('wc_token') ?? '' : ''
-  const h: Record<string, string> = { Authorization: `Bearer ${token}` }
-  if (contentType) h['Content-Type'] = contentType
-  return h
-}
 
 // ── types ────────────────────────────────────────────────────────────────────
 
@@ -27,18 +21,18 @@ const MSG_TABS: { id: MsgType; label: string; accept?: string; hasCaption?: bool
 ]
 
 const STATUS_COLOR: Record<string, string> = {
-  queued:    'bg-gray-100 text-gray-700',
-  sent:      'bg-blue-100 text-blue-700',
-  delivered: 'bg-green-100 text-green-700',
-  read:      'bg-purple-100 text-purple-700',
-  failed:    'bg-red-100 text-red-700',
+  queued:    'bg-surface-raised text-text-secondary',
+  sent:      'bg-blue-900/40 text-blue-400',
+  delivered: 'bg-primary/10 text-primary',
+  read:      'bg-purple-900/40 text-purple-400',
+  failed:    'bg-danger/10 text-danger',
 }
 
 const TYPE_BADGE: Record<string, string> = {
-  image:    'bg-pink-50 text-pink-700',
-  video:    'bg-indigo-50 text-indigo-700',
-  audio:    'bg-orange-50 text-orange-700',
-  document: 'bg-yellow-50 text-yellow-700',
+  image:    'bg-pink-900/40 text-pink-400',
+  video:    'bg-indigo-900/40 text-indigo-400',
+  audio:    'bg-orange-900/40 text-orange-400',
+  document: 'bg-yellow-900/40 text-yellow-400',
 }
 
 // ── component ─────────────────────────────────────────────────────────────────
@@ -51,7 +45,6 @@ export default function MessagesPage() {
   const [total, setTotal] = useState(0)
   const LIMIT = 30
 
-  // send modal
   const [showSend, setShowSend] = useState(false)
   const [sending, setSending] = useState(false)
   const [msgType, setMsgType] = useState<MsgType>('text')
@@ -65,12 +58,11 @@ export default function MessagesPage() {
   const [uploadError, setUploadError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
-  // lightbox
   const [lightbox, setLightbox] = useState<string | null>(null)
 
   const fetchMessages = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`${API}/v1/messages?page=${page}&limit=${LIMIT}`, { headers: authHeaders('application/json') })
+    const res = await fetch(`${API}/v1/messages?page=${page}&limit=${LIMIT}`, { headers: authHeaders() })
     const json = await res.json() as { data: Message[]; meta: { total?: number } }
     setMessages(json.data ?? [])
     setTotal(json.meta?.total ?? 0)
@@ -80,7 +72,7 @@ export default function MessagesPage() {
   useEffect(() => { void fetchMessages() }, [fetchMessages])
 
   useEffect(() => {
-    void fetch(`${API}/v1/devices`, { headers: authHeaders('application/json') })
+    void fetch(`${API}/v1/devices`, { headers: authHeaders() })
       .then((r) => r.json())
       .then((j: { data: Device[] }) => setDevices((j.data ?? []).filter((d) => d.status === 'connected')))
   }, [])
@@ -111,7 +103,7 @@ export default function MessagesPage() {
     form.append('file', file)
     const res = await fetch(`${API}/v1/upload`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${localStorage.getItem('wc_token') ?? ''}` },
+      headers: { Authorization: `Bearer ${getToken()}` },
       body: form,
     })
     const json = await res.json() as { data?: { url: string }; error?: { message: string } }
@@ -132,7 +124,7 @@ export default function MessagesPage() {
     setSending(true)
     await fetch(`${API}/v1/messages/send`, {
       method: 'POST',
-      headers: authHeaders('application/json'),
+      headers: authHeaders(),
       body: JSON.stringify({
         whatsapp_account_id: deviceId,
         phone_number: phone,
@@ -148,114 +140,91 @@ export default function MessagesPage() {
     void fetchMessages()
   }
 
-  const canSend =
-    !!deviceId &&
-    !!phone &&
-    (msgType === 'text' ? !!content : !!mediaUrl)
-
+  const canSend = !!deviceId && !!phone && (msgType === 'text' ? !!content : !!mediaUrl)
   const currentTab = MSG_TABS.find((t) => t.id === msgType)!
   const totalPages = Math.max(1, Math.ceil(total / LIMIT))
 
+  const inputCls = 'w-full rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors'
+  const selectCls = `${inputCls} cursor-pointer`
+
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Messages</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{total.toLocaleString()} total</p>
+          <h1 className="text-2xl font-bold text-text-primary">Messages</h1>
+          <p className="text-sm text-text-secondary mt-1">{total.toLocaleString()} total</p>
         </div>
         <button
           onClick={() => { resetModal(); setShowSend(true) }}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700"
+          className="bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors"
         >
           + Send message
         </button>
       </div>
 
-      {/* Table */}
       {loading ? (
-        <p className="text-gray-500">Loading…</p>
+        <div className="flex items-center justify-center h-48">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
       ) : messages.length === 0 ? (
-        <p className="text-gray-500">No messages yet.</p>
+        <p className="text-text-secondary text-sm">No messages yet.</p>
       ) : (
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="rounded-xl border overflow-hidden" style={{ borderColor: '#1E2D45' }}>
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
+            <thead className="border-b" style={{ background: 'rgba(255,255,255,0.02)', borderColor: '#1E2D45' }}>
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">To / From</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Type</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Content</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">To / From</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">Type</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">Content</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">Status</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody>
               {messages.map((m) => (
-                <tr key={m.id} className="hover:bg-gray-50">
-                  {/* Direction + number */}
-                  <td className="px-4 py-3 font-mono text-xs text-gray-700">
+                <tr key={m.id} className="border-b hover:bg-white/[0.02] transition-colors" style={{ borderColor: '#1E2D45' }}>
+                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">
                     {m.direction === 'outbound' ? `→ ${m.toNumber ?? '—'}` : `← ${m.fromNumber ?? '—'}`}
                   </td>
-
-                  {/* Type badge */}
                   <td className="px-4 py-3">
                     {m.type !== 'text' ? (
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_BADGE[m.type] ?? ''}`}>
-                        {m.type}
-                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_BADGE[m.type] ?? ''}`}>{m.type}</span>
                     ) : (
-                      <span className="text-xs text-gray-300">text</span>
+                      <span className="text-xs text-text-muted">text</span>
                     )}
                   </td>
-
-                  {/* Content / thumbnail */}
                   <td className="px-4 py-3 max-w-xs">
                     {m.type === 'image' && m.mediaUrl ? (
                       <button onClick={() => setLightbox(m.mediaUrl!)} className="block">
-                        <img
-                          src={m.mediaUrl}
-                          alt="media"
-                          className="h-12 w-16 object-cover rounded border hover:opacity-80 transition-opacity"
-                        />
-                        {m.caption && <p className="text-xs text-gray-500 mt-0.5 truncate">{m.caption}</p>}
+                        <img src={m.mediaUrl} alt="media" className="h-12 w-16 object-cover rounded border hover:opacity-80 transition-opacity" style={{ borderColor: '#1E2D45' }} />
+                        {m.caption && <p className="text-xs text-text-muted mt-0.5 truncate">{m.caption}</p>}
                       </button>
                     ) : m.type === 'video' && m.mediaUrl ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">🎬</span>
+                        <span>🎬</span>
                         <div>
-                          <p className="text-xs text-gray-600 truncate max-w-[160px]">{m.mediaUrl.split('/').pop()}</p>
-                          {m.caption && <p className="text-xs text-gray-400 truncate">{m.caption}</p>}
+                          <p className="text-xs text-text-secondary truncate max-w-[160px]">{m.mediaUrl.split('/').pop()}</p>
+                          {m.caption && <p className="text-xs text-text-muted truncate">{m.caption}</p>}
                         </div>
                       </div>
                     ) : m.type === 'audio' && m.mediaUrl ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">🎵</span>
+                        <span>🎵</span>
                         <audio controls src={m.mediaUrl} className="h-7 max-w-[160px]" />
                       </div>
                     ) : m.type === 'document' && m.mediaUrl ? (
-                      <a
-                        href={m.mediaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-xs text-blue-600 hover:underline"
-                      >
+                      <a href={m.mediaUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-primary hover:underline">
                         <span>📄</span>
                         <span className="truncate max-w-[160px]">{m.mediaUrl.split('/').pop()}</span>
                       </a>
                     ) : (
-                      <span className="text-gray-700 truncate block">{m.content ?? '—'}</span>
+                      <span className="text-text-primary truncate block">{m.content ?? '—'}</span>
                     )}
                   </td>
-
-                  {/* Status */}
                   <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLOR[m.status] ?? ''}`}>
-                      {m.status}
-                    </span>
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLOR[m.status] ?? ''}`}>{m.status}</span>
                   </td>
-
-                  {/* Date */}
-                  <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                  <td className="px-4 py-3 text-xs text-text-muted whitespace-nowrap">
                     {new Date(m.createdAt).toLocaleString()}
                   </td>
                 </tr>
@@ -263,35 +232,30 @@ export default function MessagesPage() {
             </tbody>
           </table>
 
-          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50 text-sm">
-              <span className="text-gray-500">Page {page} of {totalPages}</span>
+            <div className="flex items-center justify-between px-4 py-3 border-t text-sm" style={{ borderColor: '#1E2D45', background: 'rgba(255,255,255,0.02)' }}>
+              <span className="text-text-muted">Page {page} of {totalPages}</span>
               <div className="flex gap-2">
-                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 border rounded text-gray-600 hover:bg-white disabled:opacity-40">Prev</button>
-                <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1 border rounded text-gray-600 hover:bg-white disabled:opacity-40">Next</button>
+                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 rounded border text-text-secondary hover:text-text-primary disabled:opacity-40 transition-colors" style={{ borderColor: '#1E2D45' }}>Prev</button>
+                <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1 rounded border text-text-secondary hover:text-text-primary disabled:opacity-40 transition-colors" style={{ borderColor: '#1E2D45' }}>Next</button>
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* ── Send modal ───────────────────────────────────────────────────── */}
       {showSend && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-bold mb-4">Send Message</h2>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="relative rounded-xl border p-6 w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ background: '#111827', borderColor: '#1E2D45' }}>
+            <h2 className="text-lg font-bold text-text-primary mb-4">Send Message</h2>
 
-            {/* Type tabs */}
-            <div className="flex border-b mb-4 gap-0 -mx-1">
+            <div className="flex border-b mb-4 gap-0" style={{ borderColor: '#1E2D45' }}>
               {MSG_TABS.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => { setMsgType(tab.id); setMediaUrl(''); setPreviewUrl(null); setUploadError('') }}
                   className={`px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-colors ${
-                    msgType === tab.id
-                      ? 'border-green-600 text-green-700'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                    msgType === tab.id ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-text-secondary'
                   }`}
                 >
                   {tab.label}
@@ -300,132 +264,74 @@ export default function MessagesPage() {
             </div>
 
             <div className="space-y-3">
-              {/* Device */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Device</label>
-                <select
-                  value={deviceId}
-                  onChange={(e) => setDeviceId(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
-                >
+                <label className="block text-sm font-medium text-text-secondary mb-1">Device</label>
+                <select value={deviceId} onChange={(e) => setDeviceId(e.target.value)} className={selectCls}>
                   <option value="">Select a connected device</option>
                   {devices.map((d) => (
                     <option key={d.id} value={d.id}>{d.name} ({d.phoneNumber ?? 'no number'})</option>
                   ))}
                 </select>
               </div>
-
-              {/* Phone */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone number (E.164)</label>
-                <input
-                  type="text"
-                  placeholder="+628123456789"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
-                />
+                <label className="block text-sm font-medium text-text-secondary mb-1">Phone number (E.164)</label>
+                <input type="text" placeholder="+628123456789" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
               </div>
 
-              {/* Text message */}
               {msgType === 'text' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                  <textarea
-                    rows={4}
-                    placeholder="Type your message…"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 text-sm resize-none"
-                  />
+                  <label className="block text-sm font-medium text-text-secondary mb-1">Message</label>
+                  <textarea rows={4} placeholder="Type your message…" value={content} onChange={(e) => setContent(e.target.value)} className={`${inputCls} resize-none`} />
                 </div>
               )}
 
-              {/* Media upload */}
               {msgType !== 'text' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {currentTab.label} file <span className="text-gray-400 font-normal">(max 16 MB)</span>
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
+                    {currentTab.label} file <span className="text-text-muted font-normal">(max 16 MB)</span>
                   </label>
-
-                  {/* Hidden file input */}
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept={currentTab.accept}
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-
+                  <input ref={fileRef} type="file" accept={currentTab.accept} className="hidden" onChange={handleFileChange} />
                   {!mediaUrl && !uploading && (
-                    <button
-                      onClick={() => fileRef.current?.click()}
-                      className="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-sm text-gray-500 hover:border-green-400 hover:text-green-600 transition-colors"
-                    >
+                    <button onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed rounded-lg p-6 text-sm text-text-muted hover:border-primary hover:text-primary transition-colors" style={{ borderColor: '#1E2D45' }}>
                       Click to choose {currentTab.label.toLowerCase()} file
                     </button>
                   )}
-
-                  {uploading && (
-                    <div className="w-full border rounded-lg p-4 text-sm text-gray-500 text-center">
-                      Uploading…
-                    </div>
-                  )}
-
-                  {uploadError && (
-                    <p className="text-xs text-red-600 mt-1">{uploadError}</p>
-                  )}
-
-                  {/* Image preview */}
+                  {uploading && <div className="w-full border rounded-lg p-4 text-sm text-text-muted text-center" style={{ borderColor: '#1E2D45' }}>Uploading…</div>}
+                  {uploadError && <p className="text-xs text-danger mt-1">{uploadError}</p>}
                   {mediaUrl && msgType === 'image' && (
                     <div className="relative">
-                      {previewUrl && (
-                        <img src={previewUrl} alt="preview" className="w-full rounded-lg object-cover max-h-48 border" />
-                      )}
+                      {previewUrl && <img src={previewUrl} alt="preview" className="w-full rounded-lg object-cover max-h-48 border" style={{ borderColor: '#1E2D45' }} />}
                       <div className="flex items-center gap-2 mt-2">
-                        <p className="text-xs text-green-700 flex-1 truncate">✓ {mediaUrl.split('/').pop()}</p>
-                        <button onClick={() => { setMediaUrl(''); setPreviewUrl(null) }} className="text-xs text-gray-400 hover:text-red-500">Remove</button>
+                        <p className="text-xs text-primary flex-1 truncate">✓ {mediaUrl.split('/').pop()}</p>
+                        <button onClick={() => { setMediaUrl(''); setPreviewUrl(null) }} className="text-xs text-text-muted hover:text-danger">Remove</button>
                       </div>
                     </div>
                   )}
-
-                  {/* Non-image media uploaded */}
                   {mediaUrl && msgType !== 'image' && (
-                    <div className="flex items-center gap-2 border rounded-lg p-3">
-                      <span className="text-xl">{msgType === 'video' ? '🎬' : msgType === 'audio' ? '🎵' : '📄'}</span>
-                      <p className="text-xs text-green-700 flex-1 truncate">✓ {mediaUrl.split('/').pop()}</p>
-                      <button onClick={() => setMediaUrl('')} className="text-xs text-gray-400 hover:text-red-500">Remove</button>
+                    <div className="flex items-center gap-2 border rounded-lg p-3" style={{ borderColor: '#1E2D45' }}>
+                      <span>{msgType === 'video' ? '🎬' : msgType === 'audio' ? '🎵' : '📄'}</span>
+                      <p className="text-xs text-primary flex-1 truncate">✓ {mediaUrl.split('/').pop()}</p>
+                      <button onClick={() => setMediaUrl('')} className="text-xs text-text-muted hover:text-danger">Remove</button>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Caption (image / video) */}
               {currentTab.hasCaption && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Caption <span className="text-gray-400 font-normal">(optional)</span></label>
-                  <input
-                    type="text"
-                    placeholder="Add a caption…"
-                    value={caption}
-                    onChange={(e) => setCaption(e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 text-sm"
-                  />
+                  <label className="block text-sm font-medium text-text-secondary mb-1">Caption <span className="text-text-muted font-normal">(optional)</span></label>
+                  <input type="text" placeholder="Add a caption…" value={caption} onChange={(e) => setCaption(e.target.value)} className={inputCls} />
                 </div>
               )}
             </div>
 
             <div className="flex gap-2 mt-5 justify-end">
-              <button
-                onClick={() => { setShowSend(false); resetModal() }}
-                className="px-4 py-2 text-sm text-gray-600"
-              >
-                Cancel
-              </button>
+              <button onClick={() => { setShowSend(false); resetModal() }} className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary transition-colors">Cancel</button>
               <button
                 onClick={sendMessage}
                 disabled={sending || !canSend || uploading}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+                className="flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
+                style={{ cursor: sending ? 'not-allowed' : 'pointer' }}
               >
                 {sending ? 'Sending…' : 'Send'}
               </button>
@@ -434,18 +340,9 @@ export default function MessagesPage() {
         </div>
       )}
 
-      {/* Lightbox */}
       {lightbox && (
-        <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 cursor-zoom-out"
-          onClick={() => setLightbox(null)}
-        >
-          <img
-            src={lightbox}
-            alt="full size"
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 cursor-zoom-out" onClick={() => setLightbox(null)}>
+          <img src={lightbox} alt="full size" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </div>

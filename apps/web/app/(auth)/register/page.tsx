@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { API_URL } from '../../../lib/config'
+import { getToken } from '../../../lib/auth'
+import { GoogleSignInButton } from '../../../components/GoogleSignInButton'
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 
 function getStrength(p: string): { level: number; label: string; color: string } {
   if (p.length === 0) return { level: 0, label: '', color: '' }
@@ -18,9 +21,10 @@ function getStrength(p: string): { level: number; label: string; color: string }
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { executeRecaptcha } = useGoogleReCaptcha()
 
   useEffect(() => {
-    if (localStorage.getItem('wc_token')) router.replace('/devices')
+    if (getToken()) router.replace('/devices')
   }, [router])
 
   const [name, setName] = useState('')
@@ -44,10 +48,12 @@ export default function RegisterPage() {
     setLoading(true)
     setError('')
 
+    const recaptchaToken = executeRecaptcha ? await executeRecaptcha('register') : undefined
+
     const res = await fetch(`${API_URL}/v1/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, recaptchaToken }),
     })
 
     const json = await res.json() as { error?: { message: string } }
@@ -204,6 +210,15 @@ export default function RegisterPage() {
             {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
+
+        <div className="mt-5 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px" style={{ background: '#1E2D45' }} />
+            <span className="text-xs text-text-muted">or</span>
+            <div className="flex-1 h-px" style={{ background: '#1E2D45' }} />
+          </div>
+          <GoogleSignInButton label="Sign up with Google" />
+        </div>
 
         <p className="text-sm text-center mt-6 text-text-secondary">
           Already have an account?{' '}

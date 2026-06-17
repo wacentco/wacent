@@ -1,10 +1,11 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, UserX, UserCheck } from 'lucide-react'
 import { PlanBadge } from '../../../components/ui/PlanBadge'
 import { API_URL } from '../../../lib/config'
+import { authHeaders, getToken } from '../../../lib/auth'
 
 interface UserRow {
   id: string
@@ -24,22 +25,16 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
   const [page] = useState(1)
 
-  const getToken = useCallback(() => {
-    const t = localStorage.getItem('wc_token')
-    if (!t) router.push('/login')
-    return t
-  }, [router])
-
   const loadUsers = useCallback(async () => {
     const token = getToken()
-    if (!token) return
+    if (!token) { router.push('/login'); return }
     const params = new URLSearchParams({ page: String(page), limit: '20', ...(search ? { search } : {}) })
     const res = await fetch(`${API_URL}/admin/users?${params}`, { headers: { Authorization: `Bearer ${token}` } })
     if (res.status === 403) { router.push('/overview'); return }
     const json = await res.json() as { data: UserRow[] }
     setUsers(json.data ?? [])
     setLoading(false)
-  }, [getToken, page, router, search])
+  }, [page, router, search])
 
   useEffect(() => { void loadUsers() }, [loadUsers])
 
@@ -47,7 +42,7 @@ export default function AdminUsersPage() {
     const reason = prompt('Suspension reason?')
     if (!reason) return
     const token = getToken()
-    if (!token) return
+    if (!token) { router.push('/login'); return }
     await fetch(`${API_URL}/admin/users/${id}/suspend`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -58,7 +53,7 @@ export default function AdminUsersPage() {
 
   async function unsuspend(id: string) {
     const token = getToken()
-    if (!token) return
+    if (!token) { router.push('/login'); return }
     await fetch(`${API_URL}/admin/users/${id}/unsuspend`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
@@ -80,7 +75,7 @@ export default function AdminUsersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') void loadUsers() }}
-            placeholder="Search users…"
+            placeholder="Search usersâ€¦"
             className="pl-9 pr-3 py-2 rounded-lg text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors"
           />
         </div>

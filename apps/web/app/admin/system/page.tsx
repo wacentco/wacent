@@ -1,10 +1,11 @@
-'use client'
+﻿'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Server, MessageSquare, Smartphone, Users, Clock } from 'lucide-react'
 import { StatCard } from '../../../components/ui/StatCard'
 import { API_URL } from '../../../lib/config'
+import { authHeaders, getToken } from '../../../lib/auth'
 
 interface SystemInfo {
   totalMessages: number
@@ -18,22 +19,16 @@ export default function AdminSystemPage() {
   const [info, setInfo] = useState<SystemInfo | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const getToken = useCallback(() => {
-    const t = localStorage.getItem('wc_token')
-    if (!t) router.push('/login')
-    return t
-  }, [router])
-
   useEffect(() => {
     const token = getToken()
-    if (!token) return
+    if (!token) { router.push('/login'); return }
     void fetch(`${API_URL}/admin/system`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((json: { data: SystemInfo }) => {
         setInfo(json.data)
         setLoading(false)
       })
-  }, [getToken])
+  }, [router])
 
   if (loading) {
     return (
@@ -54,7 +49,7 @@ export default function AdminSystemPage() {
         <StatCard icon={MessageSquare} metric={info?.totalMessages ?? 0} label="Total Messages" />
         <StatCard icon={Smartphone} metric={info?.totalDevices ?? 0} label="Total Devices" />
         <StatCard icon={Users} metric={info?.totalUsers ?? 0} label="Total Users" />
-        <StatCard icon={Clock} metric={info?.uptime ?? '—'} label="API Uptime" />
+        <StatCard icon={Clock} metric={info?.uptime ?? 'â€”'} label="API Uptime" />
       </div>
 
       <div className="rounded-xl border p-5" style={{ background: 'rgba(255,255,255,0.02)', borderColor: '#1E2D45' }}>

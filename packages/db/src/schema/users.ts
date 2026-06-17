@@ -11,6 +11,9 @@ export const users = pgTable('users', {
   trialEndsAt: timestamp('trial_ends_at'),
   stripeCustomerId: varchar('stripe_customer_id', { length: 255 }),
   role: varchar('role', { length: 20 }).notNull().default('user'), // user | admin
+  googleId: varchar('google_id', { length: 255 }).unique(),
+  avatarUrl: text('avatar_url'),
+  authProvider: varchar('auth_provider', { length: 20 }).notNull().default('email'), // email | google
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
   suspendedAt: timestamp('suspended_at', { withTimezone: true }),
   suspendReason: text('suspend_reason'),

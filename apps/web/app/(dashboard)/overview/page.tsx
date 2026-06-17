@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { MessageSquare, Smartphone, CheckCircle, Megaphone, Send, Plus } from 'lucide-react'
@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { StatCard } from '../../../components/ui/StatCard'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { API_URL } from '../../../lib/config'
+import { authHeaders, getToken } from '../../../lib/auth'
 
 interface DeviceRow {
   id: string
@@ -29,7 +30,7 @@ export default function OverviewPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('wc_token')
+    const token = getToken()
     if (!token) { router.push('/login'); return }
 
     async function load() {
@@ -111,7 +112,7 @@ export default function OverviewPage() {
                 <div key={d.id} className="flex items-center justify-between py-1.5">
                   <div>
                     <p className="text-sm text-text-primary font-medium">{d.name}</p>
-                    <p className="text-xs text-text-muted">{d.phoneNumber ?? '—'}</p>
+                    <p className="text-xs text-text-muted">{d.phoneNumber ?? 'â€”'}</p>
                   </div>
                   <StatusBadge status={d.status as 'connected' | 'connecting' | 'disconnected' | 'banned'} />
                 </div>
@@ -140,7 +141,7 @@ export default function OverviewPage() {
               <tbody className="space-y-1">
                 {messages.map((m) => (
                   <tr key={m.id} className="border-b last:border-0" style={{ borderColor: '#1E2D45' }}>
-                    <td className="py-2 text-text-primary">{m.toNumber ?? '—'}</td>
+                    <td className="py-2 text-text-primary">{m.toNumber ?? 'â€”'}</td>
                     <td className="py-2 text-text-secondary capitalize">{m.type}</td>
                     <td className="py-2">
                       <span className={`capitalize text-xs font-medium ${

@@ -1,6 +1,7 @@
-'use client'
+﻿'use client'
 
 import { API_URL } from '../../../lib/config'
+import { authHeaders } from '../../../lib/auth'
 import { useEffect, useState } from 'react'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import type { Webhook } from '@wacent/types'
@@ -17,11 +18,6 @@ const ALL_EVENTS = [
   'device.disconnected',
   'device.qr_updated',
 ] as const
-
-function authHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('wc_token') ?? '' : ''
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-}
 
 export default function WebhooksPage() {
   const [webhooks, setWebhooks] = useState<Webhook[]>([])
@@ -110,8 +106,8 @@ export default function WebhooksPage() {
         <div className={`flex items-center gap-2 p-3 rounded-lg text-sm font-medium ${testResult.ok ? 'text-primary' : 'text-danger'}`}
           style={{ background: testResult.ok ? 'rgba(0,214,143,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${testResult.ok ? 'rgba(0,214,143,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
           {testResult.ok
-            ? <><CheckCircle2 className="w-4 h-4" /> Test delivered — HTTP {testResult.status ?? '?'}</>
-            : <><XCircle className="w-4 h-4" /> Test failed — HTTP {testResult.status ?? 'no response'}</>}
+            ? <><CheckCircle2 className="w-4 h-4" /> Test delivered â€” HTTP {testResult.status ?? '?'}</>
+            : <><XCircle className="w-4 h-4" /> Test failed â€” HTTP {testResult.status ?? 'no response'}</>}
         </div>
       )}
 
@@ -146,7 +142,7 @@ export default function WebhooksPage() {
                     className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-primary disabled:opacity-50 transition-colors"
                     style={{ cursor: testingId === w.id ? 'not-allowed' : 'pointer' }}
                   >
-                    {testingId === w.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Testing…</> : 'Test'}
+                    {testingId === w.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Testingâ€¦</> : 'Test'}
                   </button>
                   <button
                     onClick={() => void deleteWebhook(w.id)}
@@ -154,7 +150,7 @@ export default function WebhooksPage() {
                     className="flex items-center gap-1.5 text-xs text-danger hover:text-danger/80 disabled:opacity-50 transition-colors"
                     style={{ cursor: deletingId === w.id ? 'not-allowed' : 'pointer' }}
                   >
-                    {deletingId === w.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Deleting…</> : 'Delete'}
+                    {deletingId === w.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Deletingâ€¦</> : 'Delete'}
                   </button>
                 </div>
               </div>
@@ -198,7 +194,7 @@ export default function WebhooksPage() {
                 className="flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
                 style={{ cursor: creating ? 'not-allowed' : 'pointer' }}
               >
-                {creating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Adding…</> : 'Add webhook'}
+                {creating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Addingâ€¦</> : 'Add webhook'}
               </button>
             </div>
           </div>

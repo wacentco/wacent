@@ -5,12 +5,16 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { API_URL } from '../../../lib/config'
+import { getToken, setAuth } from '../../../lib/auth'
+import { GoogleSignInButton } from '../../../components/GoogleSignInButton'
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { executeRecaptcha } = useGoogleReCaptcha()
 
   useEffect(() => {
-    if (localStorage.getItem('wc_token')) router.replace('/devices')
+    if (getToken()) router.replace('/devices')
   }, [router])
 
   const [email, setEmail] = useState('')
@@ -24,10 +28,12 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
+    const recaptchaToken = executeRecaptcha ? await executeRecaptcha('login') : undefined
+
     const res = await fetch(`${API_URL}/v1/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, recaptchaToken }),
     })
 
     const json = await res.json() as { data?: { token: string; user: { role: string } }; error?: { message: string } }
@@ -38,8 +44,7 @@ export default function LoginPage() {
       return
     }
 
-    localStorage.setItem('wc_token', json.data.token)
-    localStorage.setItem('wc_role', json.data.user.role)
+    setAuth(json.data.token, json.data.user.role)
     router.push('/devices')
   }
 
@@ -128,6 +133,15 @@ export default function LoginPage() {
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+
+        <div className="mt-5 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px" style={{ background: '#1E2D45' }} />
+            <span className="text-xs text-text-muted">or</span>
+            <div className="flex-1 h-px" style={{ background: '#1E2D45' }} />
+          </div>
+          <GoogleSignInButton label="Continue with Google" />
+        </div>
 
         <p className="text-sm text-center mt-6 text-text-secondary">
           No account?{' '}

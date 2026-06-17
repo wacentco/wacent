@@ -1,16 +1,12 @@
-'use client'
+﻿'use client'
 
 import { API_URL } from '../../../lib/config'
+import { authHeaders } from '../../../lib/auth'
 import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { Campaign, Device } from '@wacent/types'
 
 const API = API_URL
-
-function authHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('wc_token') ?? '' : ''
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-}
 
 const statusColor: Record<string, string> = {
   draft:     'text-text-muted',
@@ -221,7 +217,7 @@ export default function CampaignsPage() {
                       className="flex items-center gap-1.5 text-xs bg-primary text-background px-3 py-1 rounded-lg hover:bg-primary-dark disabled:opacity-50 transition-colors"
                       style={{ cursor: startingId === c.id ? 'not-allowed' : 'pointer' }}
                     >
-                      {startingId === c.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Starting…</> : 'Start'}
+                      {startingId === c.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Startingâ€¦</> : 'Start'}
                     </button>
                   )}
                   {c.status === 'sending' && (
@@ -231,7 +227,7 @@ export default function CampaignsPage() {
                       className="flex items-center gap-1.5 text-xs text-warning border border-warning/40 px-3 py-1 rounded-lg hover:bg-warning/10 disabled:opacity-50 transition-colors"
                       style={{ cursor: pausingId === c.id ? 'not-allowed' : 'pointer' }}
                     >
-                      {pausingId === c.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Pausing…</> : 'Pause'}
+                      {pausingId === c.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Pausingâ€¦</> : 'Pause'}
                     </button>
                   )}
                   {(c.status === 'draft' || c.status === 'completed' || c.status === 'failed') && (
@@ -241,7 +237,7 @@ export default function CampaignsPage() {
                       className="flex items-center gap-1.5 text-xs text-danger hover:text-danger/80 disabled:opacity-50 transition-colors"
                       style={{ cursor: deletingId === c.id ? 'not-allowed' : 'pointer' }}
                     >
-                      {deletingId === c.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Deleting…</> : 'Delete'}
+                      {deletingId === c.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Deletingâ€¦</> : 'Delete'}
                     </button>
                   )}
                 </div>
@@ -273,7 +269,7 @@ export default function CampaignsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-1">Message content</label>
-                <textarea rows={4} placeholder="Your message…" value={form.content}
+                <textarea rows={4} placeholder="Your messageâ€¦" value={form.content}
                   onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
                   className={`${inputCls} resize-none`} />
               </div>
@@ -291,7 +287,7 @@ export default function CampaignsPage() {
                 className="flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
                 style={{ cursor: creating ? 'not-allowed' : 'pointer' }}
               >
-                {creating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Creating…</> : 'Create'}
+                {creating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Creatingâ€¦</> : 'Create'}
               </button>
             </div>
           </div>
@@ -329,7 +325,7 @@ export default function CampaignsPage() {
                     className="flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
                     style={{ cursor: addingRecipients ? 'not-allowed' : 'pointer' }}
                   >
-                    {addingRecipients ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Adding…</> : 'Add'}
+                    {addingRecipients ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Addingâ€¦</> : 'Add'}
                   </button>
                 </div>
               </>
@@ -337,10 +333,10 @@ export default function CampaignsPage() {
               <>
                 <p className="text-sm text-text-secondary mb-3">All contacts in the selected list will be added as recipients.</p>
                 {contactLists.length === 0 ? (
-                  <p className="text-sm text-text-muted py-4 text-center">No contact lists yet. <a href="/contacts/lists" className="text-primary hover:underline">Create one →</a></p>
+                  <p className="text-sm text-text-muted py-4 text-center">No contact lists yet. <a href="/contacts/lists" className="text-primary hover:underline">Create one â†’</a></p>
                 ) : (
                   <select value={selectedListId} onChange={(e) => setSelectedListId(e.target.value)} className={inputCls}>
-                    <option value="">Select a list…</option>
+                    <option value="">Select a listâ€¦</option>
                     {contactLists.map((l) => (
                       <option key={l.id} value={l.id}>{l.name} ({l.contactCount} contacts)</option>
                     ))}
@@ -355,7 +351,7 @@ export default function CampaignsPage() {
                     className="flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
                     style={{ cursor: addingFromList ? 'not-allowed' : 'pointer' }}
                   >
-                    {addingFromList ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Adding…</> : 'Add from list'}
+                    {addingFromList ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Addingâ€¦</> : 'Add from list'}
                   </button>
                 </div>
               </>

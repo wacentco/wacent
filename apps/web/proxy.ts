@@ -1,0 +1,31 @@
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/']
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password']
+
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const token = request.cookies.get('wc_token')?.value
+
+  // Redirect logged-in users away from auth pages
+  if (token && AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
+    return NextResponse.redirect(new URL('/devices', request.url))
+  }
+
+  // Redirect unauthenticated users away from protected pages
+  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith('/docs') || pathname.startsWith('/pricing'))
+  if (!token && !isPublic) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('from', pathname)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}

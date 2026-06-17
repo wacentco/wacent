@@ -2,13 +2,12 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { getToken } from '../lib/auth'
 
 export function LoginRedirect() {
   const router = useRouter()
   useEffect(() => {
-    if (localStorage.getItem('wc_token')) {
-      router.replace('/devices')
-    }
+    if (getToken()) router.replace('/devices')
   }, [router])
   return null
 }

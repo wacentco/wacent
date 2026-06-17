@@ -1,14 +1,10 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { CheckCircle, CreditCard } from 'lucide-react'
 import { PlanBadge } from '../../../components/ui/PlanBadge'
 import { API_URL, CONTACT_EMAIL } from '../../../lib/config'
-
-function authHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('wc_token') ?? '' : ''
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-}
+import { authHeaders } from '../../../lib/auth'
 
 interface Subscription {
   planName: string | null
@@ -106,7 +102,7 @@ export default function BillingPage() {
                 <span className="text-sm font-semibold text-text-primary">Current plan:</span>
                 <PlanBadge plan={sub.planName} />
                 {sub.subStatus && (
-                  <span className="text-xs text-text-muted capitalize">· {sub.subStatus}</span>
+                  <span className="text-xs text-text-muted capitalize">Â· {sub.subStatus}</span>
                 )}
               </div>
               {sub.currentPeriodEnd && (
@@ -121,7 +117,7 @@ export default function BillingPage() {
             disabled={redirecting}
             className="text-sm font-medium text-primary border border-primary/30 px-4 py-2 rounded-lg hover:bg-primary/10 disabled:opacity-50 transition-colors"
           >
-            {redirecting ? 'Redirecting…' : 'Manage subscription'}
+            {redirecting ? 'Redirectingâ€¦' : 'Manage subscription'}
           </button>
         </div>
       )}
@@ -187,7 +183,7 @@ export default function BillingPage() {
                       : 'border border-border text-text-secondary hover:border-primary hover:text-primary'
                   }`}
                 >
-                  {redirecting ? 'Redirecting…' : 'Upgrade'}
+                  {redirecting ? 'Redirectingâ€¦' : 'Upgrade'}
                 </button>
               ) : (
                 <a

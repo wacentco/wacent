@@ -1,17 +1,13 @@
-'use client'
+﻿'use client'
 
 import { API_URL } from '../../../lib/config'
+import { authHeaders } from '../../../lib/auth'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Loader2 } from 'lucide-react'
 import Papa from 'papaparse'
 import type { Contact } from '@wacent/types'
 
 const API = API_URL
-
-function authHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('wc_token') ?? '' : ''
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-}
 
 interface ContactForm {
   phoneNumber: string
@@ -174,7 +170,7 @@ export default function ContactsPage() {
               {importResult.errors.slice(0, 5).map((e) => (
                 <li key={e.row}>Row {e.row} ({e.phone}): {e.reason}</li>
               ))}
-              {importResult.errors.length > 5 && <li>…and {importResult.errors.length - 5} more</li>}
+              {importResult.errors.length > 5 && <li>â€¦and {importResult.errors.length - 5} more</li>}
             </ul>
           )}
           <button onClick={() => setImportResult(null)} className="mt-1 text-xs text-text-muted hover:text-text-secondary">Dismiss</button>
@@ -182,7 +178,7 @@ export default function ContactsPage() {
       )}
 
       <div className="flex gap-2">
-        <input type="text" placeholder="Search by name or phone…" value={searchInput}
+        <input type="text" placeholder="Search by name or phoneâ€¦" value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { setSearch(searchInput); setPage(1) } }}
           className="rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors flex-1 max-w-xs" />
@@ -222,7 +218,7 @@ export default function ContactsPage() {
                 <tr key={c.id} className="border-b last:border-0 hover:bg-white/[0.02] transition-colors" style={{ borderColor: '#1E2D45' }}>
                   <td className="px-4 py-3 font-medium text-text-primary">{c.name ?? <span className="text-text-muted italic">No name</span>}</td>
                   <td className="px-4 py-3 font-mono text-xs text-text-secondary">{c.phoneNumber}</td>
-                  <td className="px-4 py-3 text-text-secondary text-xs">{c.email ?? '—'}</td>
+                  <td className="px-4 py-3 text-text-secondary text-xs">{c.email ?? 'â€”'}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {((c.tags as string[] | null) ?? []).map((tag) => (
@@ -239,7 +235,7 @@ export default function ContactsPage() {
                       className="flex items-center gap-1 text-xs text-danger hover:text-danger/80 disabled:opacity-50 transition-colors inline-flex"
                       style={{ cursor: deletingId === c.id ? 'not-allowed' : 'pointer' }}
                     >
-                      {deletingId === c.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Deleting…</> : 'Delete'}
+                      {deletingId === c.id ? <><Loader2 className="w-3 h-3 animate-spin" /> Deletingâ€¦</> : 'Delete'}
                     </button>
                   </td>
                 </tr>
@@ -292,7 +288,7 @@ export default function ContactsPage() {
               <button onClick={save} disabled={saving || !form.phoneNumber}
                 className="flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
                 style={{ cursor: saving ? 'not-allowed' : 'pointer' }}>
-                {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…</> : modal === 'create' ? 'Add' : 'Save'}
+                {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Savingâ€¦</> : modal === 'create' ? 'Add' : 'Save'}
               </button>
             </div>
           </div>
@@ -322,14 +318,14 @@ export default function ContactsPage() {
                     <tr key={i} className="border-b last:border-0" style={{ borderColor: '#1E2D45', background: !(row.phoneNumber ?? row.phone) ? 'rgba(239,68,68,0.08)' : undefined }}>
                       <td className="px-3 py-1.5 text-text-muted">{i + 1}</td>
                       <td className="px-3 py-1.5 font-mono text-text-primary">{row.phoneNumber ?? row.phone ?? <span className="text-danger">missing</span>}</td>
-                      <td className="px-3 py-1.5 text-text-secondary">{row.name ?? '—'}</td>
-                      <td className="px-3 py-1.5 text-text-secondary">{row.email ?? '—'}</td>
-                      <td className="px-3 py-1.5 text-text-secondary">{row.tags ?? '—'}</td>
+                      <td className="px-3 py-1.5 text-text-secondary">{row.name ?? 'â€”'}</td>
+                      <td className="px-3 py-1.5 text-text-secondary">{row.email ?? 'â€”'}</td>
+                      <td className="px-3 py-1.5 text-text-secondary">{row.tags ?? 'â€”'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {csvRows.length > 100 && <p className="text-xs text-text-muted text-center py-2">…and {csvRows.length - 100} more rows</p>}
+              {csvRows.length > 100 && <p className="text-xs text-text-muted text-center py-2">â€¦and {csvRows.length - 100} more rows</p>}
             </div>
             <div className="flex gap-2 mt-4 justify-end">
               <button onClick={() => { setCsvRows([]); setShowImportPreview(false) }}
@@ -337,7 +333,7 @@ export default function ContactsPage() {
               <button onClick={confirmImport} disabled={importing}
                 className="flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
                 style={{ cursor: importing ? 'not-allowed' : 'pointer' }}>
-                {importing ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Importing…</> : `Import ${csvRows.filter((r) => r.phoneNumber ?? r.phone).length} contacts`}
+                {importing ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Importingâ€¦</> : `Import ${csvRows.filter((r) => r.phoneNumber ?? r.phone).length} contacts`}
               </button>
             </div>
           </div>

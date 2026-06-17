@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { getToken, getRole, clearAuth } from '../../lib/auth'
 import {
   LayoutDashboard,
   Users,
@@ -27,15 +28,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter()
 
   useEffect(() => {
-    const token = localStorage.getItem('wc_token')
-    const role = localStorage.getItem('wc_role')
-    if (!token) { router.push('/login'); return }
-    if (role !== 'admin') { router.push('/devices') }
+    if (!getToken()) { router.push('/login'); return }
+    if (getRole() !== 'admin') { router.push('/devices') }
   }, [router])
 
-  function handleLogout() {
-    localStorage.removeItem('wc_token')
-    localStorage.removeItem('wc_role')
+  async function handleLogout() {
+    await fetch('/api/logout', { method: 'POST' })
+    clearAuth()
     router.push('/login')
   }
 

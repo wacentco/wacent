@@ -1,9 +1,10 @@
-'use client'
+﻿'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertTriangle } from 'lucide-react'
 import { API_URL } from '../../../lib/config'
+import { authHeaders, getToken } from '../../../lib/auth'
 
 interface Alert {
   id: string
@@ -24,22 +25,16 @@ export default function AdminSpamPage() {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
 
-  const getToken = useCallback(() => {
-    const t = localStorage.getItem('wc_token')
-    if (!t) router.push('/login')
-    return t
-  }, [router])
-
   useEffect(() => {
     const token = getToken()
-    if (!token) return
+    if (!token) { router.push('/login'); return }
     void fetch(`${API_URL}/admin/spam-alerts?limit=50`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((json: { data: Alert[] }) => {
         setAlerts(json.data ?? [])
         setLoading(false)
       })
-  }, [getToken])
+  }, [router])
 
   return (
     <div className="space-y-6">
@@ -77,8 +72,8 @@ export default function AdminSpamPage() {
                       {alert.type}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-text-muted font-mono">{alert.userId.slice(0, 8)}…</td>
-                  <td className="px-4 py-3 text-xs text-text-muted font-mono">{alert.deviceId.slice(0, 8)}…</td>
+                  <td className="px-4 py-3 text-xs text-text-muted font-mono">{alert.userId.slice(0, 8)}â€¦</td>
+                  <td className="px-4 py-3 text-xs text-text-muted font-mono">{alert.deviceId.slice(0, 8)}â€¦</td>
                   <td className="px-4 py-3 text-xs text-text-muted">{new Date(alert.createdAt).toLocaleString()}</td>
                 </tr>
               ))}
