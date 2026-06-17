@@ -6,6 +6,10 @@ const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Let all API routes (NextAuth, logout, etc.) pass through untouched
+  if (pathname.startsWith('/api/')) return NextResponse.next()
+
   const token = request.cookies.get('wc_token')?.value
 
   // Redirect logged-in users away from auth pages

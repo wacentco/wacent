@@ -132,6 +132,13 @@ export default function LoginPage() {
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
+
+          <p className="text-center text-[11px] text-text-muted">
+            Protected by reCAPTCHA —{' '}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-text-secondary">Privacy</a>
+            {' '}·{' '}
+            <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-text-secondary">Terms</a>
+          </p>
         </form>
 
         <div className="mt-5 space-y-3">

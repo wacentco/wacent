@@ -28,6 +28,11 @@
   --danger: #EF4444;
 }
 
+/* Hide reCAPTCHA v3 badge — attribution text shown on auth forms instead */
+.grecaptcha-badge {
+  visibility: hidden !important;
+}
+
 @layer base {
   html {
     color-scheme: dark;
