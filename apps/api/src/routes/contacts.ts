@@ -5,7 +5,7 @@ import { db } from '@wacent/db'
 import { contacts } from '@wacent/db/schema'
 import { eq, and, or, ilike, desc, count } from 'drizzle-orm'
 import { CreateContactSchema, UpdateContactSchema } from '@wacent/types'
-import { apiKeyAuth } from '../middleware/auth.js'
+import { flexAuth } from '../middleware/flexAuth.js'
 
 const listQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -26,7 +26,7 @@ const importSchema = z.object({
 
 export const contactRoutes = new Hono()
 
-contactRoutes.use(apiKeyAuth)
+contactRoutes.use(flexAuth)
 
 contactRoutes.get('/', zValidator('query', listQuerySchema), async (c) => {
   const { userId } = c.get('auth')

@@ -6,7 +6,7 @@ import { campaigns, campaignRecipients, devices } from '@wacent/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { CreateCampaignSchema, UpdateCampaignSchema } from '@wacent/types'
 import { createProcessCampaignQueue } from '@wacent/queue'
-import { apiKeyAuth } from '../middleware/auth.js'
+import { flexAuth } from '../middleware/flexAuth.js'
 
 const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
 const campaignQueue = createProcessCampaignQueue({ host: new URL(REDIS_URL).hostname, port: Number(new URL(REDIS_URL).port) || 6379 })
@@ -22,7 +22,7 @@ const addRecipientsSchema = z.object({
 
 export const campaignRoutes = new Hono()
 
-campaignRoutes.use(apiKeyAuth)
+campaignRoutes.use(flexAuth)
 
 campaignRoutes.get('/', zValidator('query', pageSchema), async (c) => {
   const { userId } = c.get('auth')

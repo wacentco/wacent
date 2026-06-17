@@ -5,7 +5,7 @@ import { db } from '@wacent/db'
 import { devices } from '@wacent/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { CreateDeviceSchema } from '@wacent/types'
-import { apiKeyAuth } from '../middleware/auth.js'
+import { flexAuth } from '../middleware/flexAuth.js'
 import { planGuard } from '../middleware/planGuard.js'
 
 const patchDeviceSchema = z.object({
@@ -33,7 +33,7 @@ async function workerGet(path: string) {
 
 export const deviceRoutes = new Hono()
 
-deviceRoutes.use(apiKeyAuth)
+deviceRoutes.use(flexAuth)
 
 deviceRoutes.get('/', async (c) => {
   const { userId } = c.get('auth')

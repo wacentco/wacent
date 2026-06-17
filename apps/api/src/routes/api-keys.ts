@@ -5,13 +5,13 @@ import { createHash, randomBytes } from 'node:crypto'
 import { db } from '@wacent/db'
 import { apiKeys } from '@wacent/db/schema'
 import { eq, and, isNull } from 'drizzle-orm'
-import { apiKeyAuth } from '../middleware/auth.js'
+import { flexAuth } from '../middleware/flexAuth.js'
 
 const createSchema = z.object({ name: z.string().min(1).max(255) })
 
 export const apiKeyRoutes = new Hono()
 
-apiKeyRoutes.use(apiKeyAuth)
+apiKeyRoutes.use(flexAuth)
 
 apiKeyRoutes.get('/', async (c) => {
   const { userId } = c.get('auth')

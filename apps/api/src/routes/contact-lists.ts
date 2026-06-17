@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { db } from '@wacent/db'
 import { contactLists, contactListMembers, contacts } from '@wacent/db/schema'
 import { eq, and, desc, count, sql } from 'drizzle-orm'
-import { apiKeyAuth } from '../middleware/auth.js'
+import { flexAuth } from '../middleware/flexAuth.js'
 
 const createListSchema = z.object({ name: z.string().min(1).max(255) })
 
@@ -19,7 +19,7 @@ const pageSchema = z.object({
 
 export const contactListRoutes = new Hono()
 
-contactListRoutes.use(apiKeyAuth)
+contactListRoutes.use(flexAuth)
 
 contactListRoutes.get('/', async (c) => {
   const { userId } = c.get('auth')

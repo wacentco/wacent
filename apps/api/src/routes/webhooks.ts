@@ -6,7 +6,7 @@ import { db } from '@wacent/db'
 import { webhooks, webhookLogs } from '@wacent/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { CreateWebhookSchema, UpdateWebhookSchema } from '@wacent/types'
-import { apiKeyAuth } from '../middleware/auth.js'
+import { flexAuth } from '../middleware/flexAuth.js'
 
 const pageSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -15,7 +15,7 @@ const pageSchema = z.object({
 
 export const webhookRoutes = new Hono()
 
-webhookRoutes.use(apiKeyAuth)
+webhookRoutes.use(flexAuth)
 
 webhookRoutes.get('/', async (c) => {
   const { userId } = c.get('auth')

@@ -7,7 +7,7 @@ import { messages, devices } from '@wacent/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { SendMessageSchema } from '@wacent/types'
 import { createSendMessageQueue } from '@wacent/queue'
-import { apiKeyAuth } from '../middleware/auth.js'
+import { flexAuth } from '../middleware/flexAuth.js'
 import { spamDetect } from '../middleware/spamDetect.js'
 
 const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
@@ -21,7 +21,7 @@ const listQuerySchema = z.object({
 
 export const messageRoutes = new Hono()
 
-messageRoutes.use(apiKeyAuth)
+messageRoutes.use(flexAuth)
 
 messageRoutes.post('/send', spamDetect(redis), zValidator('json', SendMessageSchema), async (c) => {
   const { userId } = c.get('auth')
