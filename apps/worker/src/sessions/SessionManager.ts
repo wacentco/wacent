@@ -1,6 +1,10 @@
-import makeWASocket, {
+import {
+  makeWASocket,
   DisconnectReason,
   type WASocket,
+  type ConnectionState,
+  type WAMessage,
+  type MessageUpsertType,
 } from '@whiskeysockets/baileys'
 import { Boom } from '@hapi/boom'
 import type { Redis } from 'ioredis'
@@ -58,7 +62,7 @@ export class SessionManager {
 
     socket.ev.on('creds.update', saveCreds)
 
-    socket.ev.on('connection.update', (update) => {
+    socket.ev.on('connection.update', (update: Partial<ConnectionState>) => {
       const { connection, lastDisconnect, qr } = update
 
       if (qr) {
@@ -86,7 +90,7 @@ export class SessionManager {
       }
     })
 
-    socket.ev.on('messages.upsert', (upsert) => {
+    socket.ev.on('messages.upsert', (upsert: { messages: WAMessage[]; type: MessageUpsertType }) => {
       void onMessage(deviceId, upsert, this.redis)
     })
   }
