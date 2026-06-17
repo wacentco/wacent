@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Code2, Megaphone, Flame, Zap, ImageIcon, Smartphone, QrCode, TrendingUp, CheckCircle, X } from 'lucide-react'
 import { CONTACT_EMAIL } from '../lib/config'
+import { LoginRedirect } from '../components/LoginRedirect'
 
 const FEATURES = [
   { icon: Code2, title: 'REST API + SDKs', desc: 'Strict TypeScript SDK, Python client, and REST API. First message in under 5 minutes.' },
@@ -59,6 +60,7 @@ const PLANS = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen" style={{ background: '#0A0F1E', color: '#F1F5F9' }}>
+      <LoginRedirect />
       {/* Nav */}
       <nav className="fixed top-0 inset-x-0 z-40 border-b" style={{ background: 'rgba(10,15,30,0.8)', borderColor: '#1E2D45', backdropFilter: 'blur(12px)' }}>
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">

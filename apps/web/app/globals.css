@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background: #0A0F1E;
+  --foreground: #F1F5F9;
+  --card: #111827;
+  --card-foreground: #F1F5F9;
+  --border: #1E2D45;
+  --input: #1A2236;
+  --primary: #00D68F;
+  --primary-foreground: #0A0F1E;
+  --muted: #1A2236;
+  --muted-foreground: #94A3B8;
+}
+
 @layer base {
   html {
     color-scheme: dark;

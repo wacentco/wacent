@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
@@ -8,6 +8,11 @@ import { API_URL } from '../../../lib/config'
 
 export default function LoginPage() {
   const router = useRouter()
+
+  useEffect(() => {
+    if (localStorage.getItem('wc_token')) router.replace('/devices')
+  }, [router])
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)

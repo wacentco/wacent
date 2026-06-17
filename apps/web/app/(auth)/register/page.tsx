@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
@@ -18,6 +18,11 @@ function getStrength(p: string): { level: number; label: string; color: string }
 
 export default function RegisterPage() {
   const router = useRouter()
+
+  useEffect(() => {
+    if (localStorage.getItem('wc_token')) router.replace('/devices')
+  }, [router])
+
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
