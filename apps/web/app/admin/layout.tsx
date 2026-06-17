@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { getToken, getRole, clearAuth } from '../../lib/auth'
+import { clearAuth } from '../../lib/auth'
 import { signOut } from 'next-auth/react'
 import {
   LayoutDashboard,
@@ -34,11 +34,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => { setSidebarOpen(false) }, [pathname])
-
-  useEffect(() => {
-    if (!getToken()) { router.push('/login'); return }
-    if (getRole() !== 'admin') { router.push('/devices') }
-  }, [router])
 
   async function handleLogout() {
     setLoggingOut(true)

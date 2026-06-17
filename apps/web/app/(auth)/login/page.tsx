@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { API_URL } from '../../../lib/config'
-import { getToken, getRole, setAuth } from '../../../lib/auth'
+import { getToken, setAuth } from '../../../lib/auth'
 import { GoogleSignInButton } from '../../../components/GoogleSignInButton'
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 
@@ -14,7 +14,7 @@ export default function LoginPage() {
   const { executeRecaptcha } = useGoogleReCaptcha()
 
   useEffect(() => {
-    if (getToken()) router.replace(getRole() === 'admin' ? '/admin' : '/devices')
+    if (getToken()) router.replace('/devices')
   }, [router])
 
   const [email, setEmail] = useState('')
@@ -45,7 +45,7 @@ export default function LoginPage() {
     }
 
     setAuth(json.data.token, json.data.user.role)
-    router.push(json.data.user.role === 'admin' ? '/admin' : '/devices')
+    router.push('/devices')
   }
 
   return (

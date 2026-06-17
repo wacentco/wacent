@@ -25,7 +25,7 @@ export function GoogleSignInButton({ label = 'Continue with Google' }: { label?:
     const json = await res.json() as { data?: { token: string; user: { role: string } } }
     if (json.data) {
       setAuth(json.data.token, json.data.user.role)
-      router.push(json.data.user.role === 'admin' ? '/admin' : '/devices')
+      router.push('/devices')
     }
   }
 
