@@ -11,10 +11,11 @@ export function proxy(request: NextRequest) {
   if (pathname.startsWith('/api/')) return NextResponse.next()
 
   const token = request.cookies.get('wc_token')?.value
+  const role = request.cookies.get('wc_role')?.value
 
   // Redirect logged-in users away from auth pages
   if (token && AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
-    return NextResponse.redirect(new URL('/devices', request.url))
+    return NextResponse.redirect(new URL(role === 'admin' ? '/admin' : '/devices', request.url))
   }
 
   // Redirect unauthenticated users away from protected pages
@@ -23,6 +24,18 @@ export function proxy(request: NextRequest) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('from', pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  if (token) {
+    // Admin can only access /admin/* — redirect elsewhere to /admin
+    if (role === 'admin' && !pathname.startsWith('/admin')) {
+      return NextResponse.redirect(new URL('/admin', request.url))
+    }
+
+    // Non-admin cannot access /admin/* — redirect to /devices
+    if (role !== 'admin' && pathname.startsWith('/admin')) {
+      return NextResponse.redirect(new URL('/devices', request.url))
+    }
   }
 
   return NextResponse.next()
