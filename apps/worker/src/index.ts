@@ -2,7 +2,7 @@
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 import { HTTPException } from 'hono/http-exception'
-import { Redis } from 'ioredis'
+import { redis, bullMQConnection } from './redis/client.js'
 import { SessionManager } from './sessions/SessionManager.js'
 import { createInternalApi } from './api/internal.js'
 import { createSendMessageQueue, QUEUE_NAMES } from '@wacent/queue'
@@ -13,24 +13,6 @@ import { eq } from 'drizzle-orm'
 import type { SendMessageJobData } from '@wacent/queue'
 
 const PORT = Number(process.env['PORT'] ?? 3001)
-const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
-const redisUrl = new URL(REDIS_URL)
-const isTLS = REDIS_URL.startsWith('rediss://')
-const tlsOptions = isTLS ? { tls: { rejectUnauthorized: false } } : {}
-
-const redis = new Redis(REDIS_URL, {
-  ...tlsOptions,
-  retryStrategy: (times) => {
-    if (times > 3) return null
-    return Math.min(times * 200, 1000)
-  },
-})
-
-const redisConn = {
-  host: redisUrl.hostname,
-  port: Number(redisUrl.port) || 6379,
-  ...tlsOptions,
-}
 const manager = new SessionManager(redis)
 
 // Process send-message jobs
@@ -47,7 +29,7 @@ new Worker<SendMessageJobData>(
       .where(eq(messages.id, messageId))
   },
   {
-    connection: redisConn,
+    connection: bullMQConnection,
     concurrency: 5,
   },
 )
