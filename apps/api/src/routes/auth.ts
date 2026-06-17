@@ -54,7 +54,7 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
   const passwordHash = createHash('sha256').update(password).digest('hex')
 
   const [user] = await db
-    .select({ id: users.id, name: users.name, email: users.email, passwordHash: users.passwordHash })
+    .select({ id: users.id, name: users.name, email: users.email, role: users.role, passwordHash: users.passwordHash })
     .from(users)
     .where(eq(users.email, email))
     .limit(1)
@@ -68,7 +68,7 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
     .setExpirationTime('7d')
     .sign(JWT_SECRET)
 
-  return c.json({ data: { user: { id: user.id, name: user.name, email: user.email }, token }, message: 'Logged in successfully' })
+  return c.json({ data: { user: { id: user.id, name: user.name, email: user.email, role: user.role }, token }, message: 'Logged in successfully' })
 })
 
 authRoutes.post('/logout', jwtAuth, (c) => {

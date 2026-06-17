@@ -25,7 +25,7 @@ export default function LoginPage() {
       body: JSON.stringify({ email, password }),
     })
 
-    const json = await res.json() as { data?: { token: string }; error?: { message: string } }
+    const json = await res.json() as { data?: { token: string; user: { role: string } }; error?: { message: string } }
     setLoading(false)
 
     if (!res.ok || !json.data) {
@@ -34,6 +34,7 @@ export default function LoginPage() {
     }
 
     localStorage.setItem('wc_token', json.data.token)
+    localStorage.setItem('wc_role', json.data.user.role)
     router.push('/devices')
   }
 

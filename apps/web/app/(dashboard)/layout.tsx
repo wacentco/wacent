@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import {
   LayoutDashboard,
   Smartphone,
@@ -32,9 +33,15 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    setIsAdmin(localStorage.getItem('wc_role') === 'admin')
+  }, [])
 
   function handleLogout() {
     localStorage.removeItem('wc_token')
+    localStorage.removeItem('wc_role')
     router.push('/login')
   }
 
@@ -79,6 +86,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
             )
           })}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                pathname.startsWith('/admin')
+                  ? 'text-danger border-l-2 border-danger -ml-px pl-[11px]'
+                  : 'text-danger/70 hover:text-danger hover:bg-danger/5'
+              }`}
+              style={pathname.startsWith('/admin') ? { background: 'rgba(239,68,68,0.08)' } : {}}
+            >
+              <Shield className="w-4 h-4 flex-shrink-0" />
+              Admin Panel
+            </Link>
+          )}
         </nav>
 
         {/* User section */}

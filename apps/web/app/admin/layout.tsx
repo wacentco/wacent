@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import {
   LayoutDashboard,
   Users,
@@ -25,8 +26,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const router = useRouter()
 
+  useEffect(() => {
+    const token = localStorage.getItem('wc_token')
+    const role = localStorage.getItem('wc_role')
+    if (!token) { router.push('/login'); return }
+    if (role !== 'admin') { router.push('/devices') }
+  }, [router])
+
   function handleLogout() {
     localStorage.removeItem('wc_token')
+    localStorage.removeItem('wc_role')
     router.push('/login')
   }
 
