@@ -149,14 +149,14 @@ export default function MessagesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Messages</h1>
           <p className="text-sm text-text-secondary mt-1">{total.toLocaleString()} total</p>
         </div>
         <button
           onClick={() => { resetModal(); setShowSend(true) }}
-          className="bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors"
+          className="w-full sm:w-auto bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors"
         >
           + Send message
         </button>
@@ -170,7 +170,8 @@ export default function MessagesPage() {
         <p className="text-text-secondary text-sm">No messages yet.</p>
       ) : (
         <div className="rounded-xl border overflow-hidden" style={{ borderColor: '#1E2D45' }}>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
             <thead className="border-b" style={{ background: 'rgba(255,255,255,0.02)', borderColor: '#1E2D45' }}>
               <tr>
                 <th className="text-left px-4 py-3 font-medium text-text-secondary">To / From</th>
@@ -232,6 +233,7 @@ export default function MessagesPage() {
             </tbody>
           </table>
 
+          </div>
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t text-sm" style={{ borderColor: '#1E2D45', background: 'rgba(255,255,255,0.02)' }}>
               <span className="text-text-muted">Page {page} of {totalPages}</span>

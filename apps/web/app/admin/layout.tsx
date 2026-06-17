@@ -14,6 +14,8 @@ import {
   Server,
   LogOut,
   Loader2,
+  Menu,
+  X,
 } from 'lucide-react'
 
 const navItems = [
@@ -29,6 +31,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const router = useRouter()
   const [loggingOut, setLoggingOut] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => { setSidebarOpen(false) }, [pathname])
 
   useEffect(() => {
     if (!getToken()) { router.push('/login'); return }
@@ -44,12 +49,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen" style={{ background: '#0A0F1E', cursor: loggingOut ? 'wait' : undefined }}>
-      <aside
-        className="w-60 flex flex-col fixed inset-y-0 left-0 z-50 border-r"
+    <div style={{ background: '#0A0F1E', cursor: loggingOut ? 'wait' : undefined }} className="min-h-screen">
+
+      {/* Mobile top bar */}
+      <div
+        className="md:hidden fixed top-0 inset-x-0 z-40 h-14 flex items-center justify-between px-4 border-b"
         style={{ background: '#1A0A0A', borderColor: '#3D1515' }}
       >
-        <div className="px-5 py-5 border-b" style={{ borderColor: '#3D1515' }}>
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-white/5 transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-danger flex items-center justify-center">
+            <span className="text-white font-bold text-xs">W</span>
+          </div>
+          <span className="font-bold text-white text-sm">Wacent</span>
+          <span className="text-xs font-bold text-danger border border-danger/50 rounded px-1.5 py-0.5">ADMIN</span>
+        </div>
+        <div className="w-8" />
+      </div>
+
+      {/* Sidebar overlay (mobile) */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-60 flex flex-col border-r transition-transform duration-200 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
+        style={{ background: '#1A0A0A', borderColor: '#3D1515' }}
+      >
+        <div className="px-5 py-5 border-b flex items-center justify-between" style={{ borderColor: '#3D1515' }}>
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-danger flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-xs">W</span>
@@ -59,6 +97,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               ADMIN
             </span>
           </div>
+          <button
+            className="md:hidden p-1 rounded text-[#475569] hover:text-white"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
@@ -68,7 +112,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   active
                     ? 'text-danger border-l-2 border-danger -ml-px pl-[11px]'
                     : 'text-text-secondary hover:text-text-primary hover:bg-white/5'
@@ -86,7 +130,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm text-text-secondary hover:text-danger hover:bg-danger/5 transition-colors disabled:opacity-60 disabled:cursor-wait"
+            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm text-text-secondary hover:text-danger hover:bg-danger/5 transition-colors disabled:opacity-60 disabled:cursor-wait"
           >
             {loggingOut
               ? <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" />
@@ -96,8 +140,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      <main className="flex-1 ml-60 p-8 min-h-screen">
-        {children}
+      <main className="md:ml-60 pt-14 md:pt-0 min-h-screen">
+        <div className="p-4 md:p-8">
+          {children}
+        </div>
       </main>
     </div>
   )

@@ -137,12 +137,12 @@ export default function ContactsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Contacts</h1>
           <p className="text-sm text-text-secondary mt-1">{total.toLocaleString()} total</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <a href="/contacts/lists" className="border border-border text-text-secondary px-4 py-2 rounded-lg text-sm font-medium hover:text-text-primary hover:border-primary/50 transition-colors">
             Lists
           </a>

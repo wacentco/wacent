@@ -72,7 +72,7 @@ export default function ApiKeysPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">API Keys</h1>
           <p className="text-sm text-text-secondary mt-1">Authenticate your API requests</p>
@@ -84,15 +84,15 @@ export default function ApiKeysPage() {
             value={newKeyName}
             onChange={(e) => setNewKeyName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') void createKey() }}
-            className="rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors"
+            className="flex-1 sm:flex-none sm:w-40 rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors"
           />
           <button
             onClick={createKey}
             disabled={creating || !newKeyName.trim()}
-            className="flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
+            className="whitespace-nowrap flex items-center gap-2 bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 transition-colors"
             style={{ cursor: creating ? 'not-allowed' : 'pointer' }}
           >
-            {creating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Creatingâ€¦</> : '+ Create key'}
+            {creating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Creating…</> : '+ Create key'}
           </button>
         </div>
       </div>

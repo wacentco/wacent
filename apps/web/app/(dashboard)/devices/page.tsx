@@ -116,7 +116,7 @@ export default function DevicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Devices</h1>
           <p className="text-sm text-text-secondary mt-1">{devices.length} WhatsApp number{devices.length !== 1 ? 's' : ''}</p>
@@ -127,15 +127,15 @@ export default function DevicesPage() {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') void createDevice() }}
-            placeholder="Device nameâ€¦"
-            className="rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors"
+            placeholder="Device name…"
+            className="flex-1 sm:flex-none sm:w-44 rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted bg-surface border border-border focus:outline-none focus:border-primary transition-colors"
           />
           <button
             onClick={() => void createDevice()}
             disabled={creating || !newName.trim()}
-            className="px-4 py-2 rounded-lg bg-primary text-background text-sm font-semibold hover:bg-primary-dark disabled:opacity-50 transition-colors"
+            className="whitespace-nowrap px-4 py-2 rounded-lg bg-primary text-background text-sm font-semibold hover:bg-primary-dark disabled:opacity-50 transition-colors"
           >
-            {creating ? 'â€¦' : 'Add Device'}
+            {creating ? '…' : 'Add Device'}
           </button>
         </div>
       </div>

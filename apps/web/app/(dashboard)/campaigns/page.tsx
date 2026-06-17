@@ -166,11 +166,11 @@ export default function CampaignsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-2xl font-bold text-text-primary">Campaigns</h1>
         <button
           onClick={() => setShowCreate(true)}
-          className="bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors"
+          className="w-full sm:w-auto bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors"
         >
           + New campaign
         </button>

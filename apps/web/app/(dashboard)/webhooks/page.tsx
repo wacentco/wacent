@@ -89,14 +89,14 @@ export default function WebhooksPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Webhooks</h1>
           <p className="text-sm text-text-secondary mt-1">Receive real-time events via HTTP POST</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors"
+          className="w-full sm:w-auto bg-primary text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors"
         >
           + Add webhook
         </button>
