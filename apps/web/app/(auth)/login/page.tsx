@@ -60,12 +60,12 @@ export default function LoginPage() {
         style={{ background: 'rgba(17,24,39,0.8)', borderColor: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-6">
+          <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-background font-bold text-sm">W</span>
             </div>
             <span className="text-xl font-bold text-text-primary">Wacent</span>
-          </div>
+          </Link>
           <h1 className="text-2xl font-bold text-text-primary">Welcome back</h1>
           <p className="text-sm text-text-secondary mt-1">Sign in to your account</p>
         </div>
