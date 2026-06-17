@@ -7,6 +7,9 @@ services:
     ports:
       - "3001:3001"
     env_file: .env.production
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
 
   nginx:
     image: nginx:alpine
