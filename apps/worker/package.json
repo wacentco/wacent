@@ -15,7 +15,7 @@
     "@wacent/db": "workspace:*",
     "@wacent/queue": "workspace:*",
     "@wacent/types": "workspace:*",
-    "@whiskeysockets/baileys": "^6.7.9",
+    "@whiskeysockets/baileys": "^7.0.0-rc13",
     "bullmq": "^5.12.0",
     "drizzle-orm": "^0.41.0",
     "hono": "^4.4.0",
