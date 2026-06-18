@@ -4,6 +4,7 @@ import {
   type WASocket,
   type ConnectionState,
   type WAMessage,
+  type WAMessageUpdate,
   type MessageUpsertType,
 } from '@whiskeysockets/baileys'
 import { Boom } from '@hapi/boom'
@@ -97,14 +98,15 @@ export class SessionManager {
       void onMessage(deviceId, upsert, this.redis)
     })
 
-    socket.ev.on('messages.update', (updates: { update: { status?: number }; key: { id?: string | null } }[]) => {
+    socket.ev.on('messages.update', (updates: WAMessageUpdate[]) => {
       for (const update of updates) {
         const status = update.update.status
         const waMessageId = update.key.id
         if (!status || !waMessageId) continue
+        const statusNum = status as number
         void this.redis.publish(
           'wacent:events:status',
-          JSON.stringify({ deviceId, waMessageId, status, timestamp: new Date().toISOString() }),
+          JSON.stringify({ deviceId, waMessageId, status: statusNum, timestamp: new Date().toISOString() }),
         )
       }
     })
