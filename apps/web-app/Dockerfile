@@ -8,11 +8,11 @@ COPY package.json ./
 COPY pnpm-lock.yaml ./
 COPY tsconfig.base.json ./
 COPY packages/ ./packages/
-COPY apps/web/ ./apps/web/
+COPY apps/web-app/ ./apps/web-app/
 RUN pnpm install
 RUN pnpm --filter @wacent/db build
 RUN pnpm --filter @wacent/types build
 RUN pnpm --filter @wacent/queue build
-RUN pnpm --filter @wacent/web build
+RUN pnpm --filter @wacent/web-app build
 EXPOSE 3000
-CMD ["pnpm", "--filter", "@wacent/web", "start"]
+CMD ["pnpm", "--filter", "@wacent/web-app", "start"]

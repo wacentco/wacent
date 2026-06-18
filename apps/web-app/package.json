@@ -1,5 +1,5 @@
 {
-  "name": "@wacent/web",
+  "name": "@wacent/web-app",
   "version": "0.0.1",
   "private": true,
   "scripts": {
