@@ -19,13 +19,19 @@ const WORKER_SECRET = process.env['WORKER_SECRET'] ?? ''
 async function workerPost(path: string, body?: object) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 10000)
+
+  const init: RequestInit = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Worker-Secret': WORKER_SECRET },
+    signal: controller.signal,
+  }
+
+  if (body !== undefined) {
+    init.body = JSON.stringify(body)
+  }
+
   try {
-    const res = await fetch(`${WORKER_URL}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Worker-Secret': WORKER_SECRET },
-      body: body ? JSON.stringify(body) : undefined,
-      signal: controller.signal,
-    })
+    const res = await fetch(`${WORKER_URL}${path}`, init)
     return res
   } catch (err) {
     console.error(`Worker call failed for ${path}:`, err)
