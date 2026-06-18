@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Smartphone, Trash2, WifiOff, QrCode, X, AlertTriangle } from 'lucide-react'
+import { Smartphone, Trash2, WifiOff, QrCode, X, AlertTriangle, Info } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { HealthBar } from '../../../components/ui/HealthBar'
@@ -57,6 +57,53 @@ function Tooltip({ text, children, className }: { text: string; children: React.
         <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 max-w-[90vw] rounded-lg border border-white/10 bg-gray-900 p-3 text-center text-xs text-text-secondary shadow-lg">
           {text}
           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white/10" />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function InfoButton({ text }: { text: string }) {
+  const [visible, setVisible] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (visible) {
+      setVisible(false)
+      if (timerRef.current) clearTimeout(timerRef.current)
+    } else {
+      setVisible(true)
+      timerRef.current = setTimeout(() => setVisible(false), 3000)
+    }
+  }
+
+  const showHover = () => setVisible(true)
+  const hideHover = () => {
+    setVisible(false)
+    if (timerRef.current) clearTimeout(timerRef.current)
+  }
+
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+  }, [])
+
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={toggle}
+        onMouseEnter={showHover}
+        onMouseLeave={hideHover}
+        className="flex items-center justify-center w-5 h-5 rounded text-text-muted hover:text-text-secondary transition-colors"
+        aria-label="More info"
+      >
+        <Info className="w-3.5 h-3.5" />
+      </button>
+      {visible && (
+        <div className="absolute z-50 bottom-full right-0 mb-2 w-64 max-w-[90vw] rounded-lg border border-white/10 bg-gray-900 p-3 text-xs text-text-secondary shadow-lg">
+          {text}
+          <div className="absolute top-full right-2 border-4 border-transparent border-t-white/10" />
         </div>
       )}
     </div>
@@ -230,32 +277,32 @@ export default function DevicesPage() {
 
               <div className="flex gap-2 mt-auto pt-1">
                 {device.status !== 'connected' ? (
-                  <Tooltip className="flex-1" text="Connect your WhatsApp number by scanning a QR code. If previously connected, this will reconnect without scanning again.">
+                  <div className="flex flex-1 items-center gap-1.5">
                     <button
                       onClick={() => void openQR(device)}
-                      className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-primary border border-primary/30 hover:bg-primary/10 transition-colors"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-primary border border-primary/30 hover:bg-primary/10 transition-colors"
                     >
                       <QrCode className="w-3.5 h-3.5" /> Connect
                     </button>
-                  </Tooltip>
+                    <InfoButton text="Connect your WhatsApp number by scanning a QR code. If previously connected, this will reconnect without scanning again." />
+                  </div>
                 ) : (
-                  <Tooltip className="flex-1" text="Temporarily pause this WhatsApp connection. Your session is saved — reconnect anytime without scanning a new QR code. Note: if you log out from WhatsApp on your phone, you will need to scan a new QR code.">
+                  <div className="flex flex-1 items-center gap-1.5">
                     <button
                       onClick={() => void disconnectDevice(device.id)}
-                      className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-secondary border border-border hover:border-warning hover:text-warning transition-colors"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-secondary border border-border hover:border-warning hover:text-warning transition-colors"
                     >
                       <WifiOff className="w-3.5 h-3.5" /> Disconnect
                     </button>
-                  </Tooltip>
+                    <InfoButton text="Temporarily pause this WhatsApp connection. Your session is saved — reconnect anytime without scanning a new QR code. Note: if you log out from WhatsApp on your phone, you will need to scan a new QR code." />
+                  </div>
                 )}
-                <Tooltip text="Permanently delete this device and all its message history.">
-                  <button
-                    onClick={() => setDeleteModal(device.id)}
-                    className="flex items-center justify-center px-2.5 py-1.5 rounded-lg text-danger/70 border border-border hover:border-danger hover:text-danger transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </Tooltip>
+                <button
+                  onClick={() => setDeleteModal(device.id)}
+                  className="flex items-center justify-center px-2.5 py-1.5 rounded-lg text-danger/70 border border-border hover:border-danger hover:text-danger transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           ))}
