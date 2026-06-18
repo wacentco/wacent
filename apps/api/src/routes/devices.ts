@@ -16,12 +16,12 @@ const patchDeviceSchema = z.object({
 const WORKER_URL = process.env['WORKER_URL'] ?? 'http://localhost:3001'
 const WORKER_SECRET = process.env['WORKER_SECRET'] ?? ''
 
-async function workerPost(path: string, body?: object) {
+async function workerFetch(path: string, body?: object, method = 'POST') {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 10000)
 
   const init: RequestInit = {
-    method: 'POST',
+    method,
     headers: { 'Content-Type': 'application/json', 'X-Worker-Secret': WORKER_SECRET },
     signal: controller.signal,
   }
@@ -90,7 +90,7 @@ deviceRoutes.post('/', planGuard, zValidator('json', CreateDeviceSchema), async 
     return c.json({ error: { code: 'CREATE_FAILED', message: 'Failed to create device' } }, 500)
   }
 
-  workerPost(`/internal/sessions/${device.id}/start`).catch((err) =>
+  workerFetch(`/internal/sessions/${device.id}/start`).catch((err) =>
     console.warn('Worker start failed (non-critical):', err),
   )
 
@@ -146,7 +146,7 @@ deviceRoutes.post('/:id/disconnect', async (c) => {
   }
 
   try {
-    await workerPost(`/internal/sessions/${id}/stop`)
+    await workerFetch(`/internal/sessions/${id}/stop`)
   } catch (err) {
     console.warn('Worker stop failed (non-critical):', err)
   }
@@ -169,7 +169,7 @@ deviceRoutes.post('/:id/reconnect', async (c) => {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Device not found' } }, 404)
   }
 
-  workerPost(`/internal/sessions/${id}/start`).catch((err) =>
+  workerFetch(`/internal/sessions/${id}/start`).catch((err) =>
     console.warn('Worker start failed (non-critical):', err),
   )
 
@@ -224,7 +224,7 @@ deviceRoutes.delete('/:id', async (c) => {
   }
 
   try {
-    await workerPost(`/internal/sessions/${id}/stop`)
+    await workerFetch(`/internal/sessions/${id}/stop`)
   } catch (err) {
     console.warn('Worker stop failed during delete, continuing:', err)
   }
@@ -245,6 +245,10 @@ deviceRoutes.delete('/:id', async (c) => {
   await db.delete(spamAlerts).where(eq(spamAlerts.deviceId, id))
   await db.delete(usageLogs).where(eq(usageLogs.deviceId, id))
   await db.delete(devices).where(eq(devices.id, id))
+
+  workerFetch(`/internal/sessions/${id}/data`, undefined, 'DELETE').catch((err) =>
+    console.warn('Redis cleanup failed (non-critical):', err),
+  )
 
   return c.json({ data: { id }, message: 'Device deleted' })
 })

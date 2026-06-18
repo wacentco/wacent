@@ -1,7 +1,7 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Smartphone, Trash2, WifiOff, QrCode, X } from 'lucide-react'
+import { Smartphone, Trash2, WifiOff, QrCode, X, AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { HealthBar } from '../../../components/ui/HealthBar'
@@ -19,6 +19,24 @@ interface Device {
   warmProgress: number
 }
 
+const STATUS_TOOLTIPS: Record<string, string> = {
+  connected: 'Your WhatsApp number is active and ready to send/receive messages.',
+  connecting: 'Setting up your WhatsApp connection. Click Connect to scan the QR code.',
+  disconnected: 'This number is paused. Click Connect to resume without scanning a new QR code.',
+  banned: 'This number has been banned by WhatsApp. You will need to use a different number.',
+}
+
+function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
+  return (
+    <div className="relative group/tip">
+      {children}
+      <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-56 -translate-x-1/2 rounded-lg border border-white/10 bg-gray-900 p-2 text-center text-xs text-text-secondary group-hover/tip:block">
+        {text}
+      </div>
+    </div>
+  )
+}
+
 export default function DevicesPage() {
   const router = useRouter()
   const [devices, setDevices] = useState<Device[]>([])
@@ -27,6 +45,7 @@ export default function DevicesPage() {
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
   const [creating, setCreating] = useState(false)
+  const [deleteModal, setDeleteModal] = useState<string | null>(null)
 
   const loadDevices = useCallback(async () => {
     const token = getToken()
@@ -85,14 +104,15 @@ export default function DevicesPage() {
     setTimeout(() => clearInterval(poll), 300_000)
   }
 
-  async function deleteDevice(id: string) {
-    if (!confirm('Delete this device?')) return
+  async function confirmDelete() {
+    if (!deleteModal) return
     const token = getToken()
     if (!token) return
-    await fetch(`${API_URL}/v1/devices/${id}`, {
+    await fetch(`${API_URL}/v1/devices/${deleteModal}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })
+    setDeleteModal(null)
     void loadDevices()
   }
 
@@ -160,7 +180,9 @@ export default function DevicesPage() {
                   <p className="text-sm font-semibold text-text-primary">{device.name}</p>
                   <p className="text-xs text-text-muted mt-0.5">{device.phoneNumber ?? 'No number yet'}</p>
                 </div>
-                <StatusBadge status={device.status as 'connected' | 'connecting' | 'disconnected' | 'banned'} />
+                <Tooltip text={STATUS_TOOLTIPS[device.status] ?? ''}>
+                  <StatusBadge status={device.status as 'connected' | 'connecting' | 'disconnected' | 'banned'} />
+                </Tooltip>
               </div>
 
               <HealthBar score={device.healthScore ?? 100} />
@@ -182,29 +204,74 @@ export default function DevicesPage() {
 
               <div className="flex gap-2 mt-auto pt-1">
                 {device.status !== 'connected' ? (
-                  <button
-                    onClick={() => void openQR(device)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-primary border border-primary/30 hover:bg-primary/10 transition-colors"
-                  >
-                    <QrCode className="w-3.5 h-3.5" /> Connect
-                  </button>
+                  <Tooltip text="Connect your WhatsApp number by scanning a QR code. If previously connected, this will reconnect without scanning again.">
+                    <button
+                      onClick={() => void openQR(device)}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-primary border border-primary/30 hover:bg-primary/10 transition-colors"
+                    >
+                      <QrCode className="w-3.5 h-3.5" /> Connect
+                    </button>
+                  </Tooltip>
                 ) : (
-                  <button
-                    onClick={() => void disconnectDevice(device.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-secondary border border-border hover:border-warning hover:text-warning transition-colors"
-                  >
-                    <WifiOff className="w-3.5 h-3.5" /> Disconnect
-                  </button>
+                  <Tooltip text="Temporarily pause this WhatsApp connection. Your session is saved — reconnect anytime without scanning a new QR code. Note: if you log out from WhatsApp on your phone, you will need to scan a new QR code.">
+                    <button
+                      onClick={() => void disconnectDevice(device.id)}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-secondary border border-border hover:border-warning hover:text-warning transition-colors"
+                    >
+                      <WifiOff className="w-3.5 h-3.5" /> Disconnect
+                    </button>
+                  </Tooltip>
                 )}
-                <button
-                  onClick={() => void deleteDevice(device.id)}
-                  className="flex items-center justify-center px-2.5 py-1.5 rounded-lg text-danger/70 border border-border hover:border-danger hover:text-danger transition-colors"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <Tooltip text="Permanently delete this device and all its message history.">
+                  <button
+                    onClick={() => setDeleteModal(device.id)}
+                    className="flex items-center justify-center px-2.5 py-1.5 rounded-lg text-danger/70 border border-border hover:border-danger hover:text-danger transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </Tooltip>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      <p className="text-xs text-text-muted">
+        Need help?{' '}
+        <a href="/best-practices" className="text-primary hover:underline">
+          Read our Best Practices guide →
+        </a>
+      </p>
+
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
+          <div className="w-full max-w-sm rounded-2xl border p-6" style={{ background: '#111827', borderColor: '#1E2D45' }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger/10">
+                <AlertTriangle className="h-5 w-5 text-danger" />
+              </div>
+              <h2 className="text-base font-semibold text-text-primary">Delete this device?</h2>
+            </div>
+            <p className="text-sm text-text-secondary mb-2">
+              This will permanently remove this WhatsApp number and all its message history from Wacent.
+              You will need to scan a new QR code to reconnect this number in the future.
+            </p>
+            <p className="text-sm font-medium text-text-primary mb-6">This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteModal(null)}
+                className="flex-1 rounded-lg px-4 py-2 text-sm font-medium text-text-secondary border border-border hover:border-white/20 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void confirmDelete()}
+                className="flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-white bg-danger hover:bg-danger/80 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -217,7 +284,7 @@ export default function DevicesPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-text-secondary mb-4">Open WhatsApp â†’ Linked Devices â†’ Link a Device, then scan this QR.</p>
+            <p className="text-xs text-text-secondary mb-4">Open WhatsApp → Linked Devices → Link a Device, then scan this QR.</p>
             <div className="flex items-center justify-center bg-surface-raised rounded-xl p-4 mb-3">
               {qrCode ? (
                 <img

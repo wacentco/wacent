@@ -55,5 +55,11 @@ export function createInternalApi(manager: SessionManager) {
     return c.json({ data: { deviceId, qr }, message: 'OK' })
   })
 
+  app.delete('/internal/sessions/:deviceId/data', async (c) => {
+    const { deviceId } = c.req.param()
+    await manager.deleteSessionData(deviceId)
+    return c.json({ data: { deviceId, deleted: true }, message: 'Session data deleted' })
+  })
+
   return app
 }

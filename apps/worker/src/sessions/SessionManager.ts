@@ -235,6 +235,15 @@ export class SessionManager {
     }
   }
 
+  async deleteSessionData(deviceId: string): Promise<void> {
+    const pattern = `WACENT:auth:${deviceId}*`
+    const keys = await this.redis.keys(pattern)
+    if (keys.length > 0) {
+      await this.redis.del(...keys)
+    }
+    console.log(`[SessionManager] Deleted ${keys.length} Redis keys for device ${deviceId}`)
+  }
+
   getQR(deviceId: string): string | null {
     return this.sessions.get(deviceId)?.qr ?? null
   }
