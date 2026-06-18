@@ -3,7 +3,7 @@ import { db } from '@wacent/db'
 import { devices } from '@wacent/db/schema'
 import { eq } from 'drizzle-orm'
 import { QUEUE_NAMES } from '@wacent/queue'
-import { redisConn } from '../lib/redis.js'
+import { bullMQConnection } from '../redis/client.js'
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value))
@@ -35,18 +35,13 @@ export function createHealthCheckWorker() {
       for (const device of connectedDevices) {
         const delta = calcHealthDelta(device.messagesSentToday, device.messagesFailedToday)
         const newScore = clamp((device.healthScore ?? 100) + delta, 0, 100)
-
         await db
           .update(devices)
-          .set({
-            healthScore: newScore,
-            lastHealthCheck: new Date(),
-            updatedAt: new Date(),
-          })
+          .set({ healthScore: newScore, lastHealthCheck: new Date(), updatedAt: new Date() })
           .where(eq(devices.id, device.id))
       }
     },
-    { connection: redisConn, concurrency: 1 },
+    { connection: bullMQConnection, concurrency: 1 },
   )
 }
 

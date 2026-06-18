@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { HTTPException } from 'hono/http-exception'
-import { redis, redisConn } from './lib/redis.js'
+import { redis } from './lib/redis.js'
 import { rateLimit } from './middleware/ratelimit.js'
 import { authRoutes } from './routes/auth.js'
 import { apiKeyRoutes } from './routes/api-keys.js'
@@ -18,12 +18,7 @@ import { contactRoutes } from './routes/contacts.js'
 import { contactListRoutes } from './routes/contact-lists.js'
 import { privacyRoutes } from './routes/privacy.js'
 import { adminRoutes } from './routes/admin.js'
-import { createWarmDeviceWorker } from './jobs/warmDevice.js'
-import { createHealthCheckWorker, resetDailyCounters } from './jobs/healthCheck.js'
-import { createProcessCampaignWorker } from './jobs/processCampaign.js'
-import { createDeliverWebhookWorker } from './jobs/deliverWebhook.js'
 import { startEventSubscriber } from './lib/eventSubscriber.js'
-import { createWarmDeviceQueue, createHealthCheckQueue } from '@wacent/queue'
 
 const PORT = Number(process.env['PORT'] ?? 8000)
 
@@ -66,32 +61,7 @@ app.onError((err, c) => {
   return c.json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } }, 500)
 })
 
-serve({ fetch: app.fetch, port: PORT }, async () => {
+serve({ fetch: app.fetch, port: PORT }, () => {
   console.log(`API server running on http://localhost:${PORT}`)
-
-  // Warm device: daily 09:00 UTC
-  createWarmDeviceWorker()
-  const warmQueue = createWarmDeviceQueue(redisConn)
-  await warmQueue.upsertJobScheduler(
-    'daily-warm-sweep',
-    { pattern: '0 9 * * *' },
-    { name: 'sweep', data: { deviceId: '__sweep__', userId: '' } },
-  )
-
-  // Health check: hourly + daily counter reset at midnight UTC
-  createHealthCheckWorker()
-  const healthQueue = createHealthCheckQueue(redisConn)
-  await healthQueue.upsertJobScheduler('hourly-health-check', { pattern: '0 * * * *' }, { name: 'check', data: {} })
-  await healthQueue.upsertJobScheduler('midnight-reset', { pattern: '0 0 * * *' }, { name: 'reset', data: {} })
-
-  // Campaign processor
-  createProcessCampaignWorker()
-
-  // Webhook delivery worker
-  createDeliverWebhookWorker()
-
-  // Subscribe to message status updates from worker
   startEventSubscriber()
-
-  console.log('Workers and crons initialized')
 })

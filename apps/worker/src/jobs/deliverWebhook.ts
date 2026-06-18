@@ -5,7 +5,7 @@ import { webhooks, webhookLogs } from '@wacent/db/schema'
 import { eq } from 'drizzle-orm'
 import { QUEUE_NAMES } from '@wacent/queue'
 import type { DeliverWebhookJobData } from '@wacent/queue'
-import { redisConn } from '../lib/redis.js'
+import { bullMQConnection } from '../redis/client.js'
 
 export function createDeliverWebhookWorker() {
   return new Worker<DeliverWebhookJobData>(
@@ -71,6 +71,6 @@ export function createDeliverWebhookWorker() {
         throw new Error(`Webhook delivery failed: HTTP ${responseStatus ?? 'timeout'}`)
       }
     },
-    { connection: redisConn, concurrency: 5 },
+    { connection: bullMQConnection, concurrency: 5 },
   )
 }

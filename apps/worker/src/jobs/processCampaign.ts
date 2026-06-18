@@ -4,10 +4,8 @@ import { campaigns, campaignRecipients, devices, messages, users, plans, spamAle
 import { eq, and, count } from 'drizzle-orm'
 import { QUEUE_NAMES, createProcessCampaignQueue } from '@wacent/queue'
 import type { ProcessCampaignJobData } from '@wacent/queue'
-import { redisConn } from '../lib/redis.js'
-
-const WORKER_URL = process.env['WORKER_URL'] ?? 'http://localhost:3001'
-const WORKER_SECRET = process.env['WORKER_SECRET'] ?? ''
+import { bullMQConnection } from '../redis/client.js'
+import type { SessionManager } from '../sessions/SessionManager.js'
 
 const MIN_DELAY_MS = 1500
 const BATCH_SIZE = 50
@@ -24,12 +22,7 @@ function sleep(ms: number) {
 }
 
 async function getDailyLimit(userId: string): Promise<number> {
-  const [user] = await db
-    .select({ planId: users.planId })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1)
-
+  const [user] = await db.select({ planId: users.planId }).from(users).where(eq(users.id, userId)).limit(1)
   if (!user?.planId) return PLAN_DAILY_LIMITS['starter'] ?? 300
 
   const [plan] = await db
@@ -49,43 +42,15 @@ async function getDailyLimit(userId: string): Promise<number> {
 }
 
 async function countTodaySent(deviceId: string): Promise<number> {
-  const todayStart = new Date()
-  todayStart.setUTCHours(0, 0, 0, 0)
-
   const [row] = await db
     .select({ value: count() })
     .from(messages)
-    .where(
-      and(
-        eq(messages.deviceId, deviceId),
-        eq(messages.direction, 'outbound'),
-        eq(messages.status, 'sent'),
-      ),
-    )
-
+    .where(and(eq(messages.deviceId, deviceId), eq(messages.direction, 'outbound'), eq(messages.status, 'sent')))
   return row?.value ?? 0
 }
 
-async function sendViaWorker(
-  deviceId: string,
-  to: string,
-  payload: { type: string; content?: string; mediaUrl?: string; caption?: string },
-): Promise<boolean> {
-  try {
-    const res = await fetch(`${WORKER_URL}/internal/sessions/${deviceId}/send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Worker-Secret': WORKER_SECRET },
-      body: JSON.stringify({ to, ...payload }),
-      signal: AbortSignal.timeout(15_000),
-    })
-    return res.ok
-  } catch {
-    return false
-  }
-}
-
-export function createProcessCampaignWorker() {
-  const queue = createProcessCampaignQueue(redisConn)
+export function createProcessCampaignWorker(manager: SessionManager) {
+  const queue = createProcessCampaignQueue(bullMQConnection)
 
   return new Worker<ProcessCampaignJobData>(
     QUEUE_NAMES.PROCESS_CAMPAIGN,
@@ -100,7 +65,6 @@ export function createProcessCampaignWorker() {
 
       if (!campaign || campaign.status !== 'sending') return
 
-      // Check device health score
       const [device] = await db
         .select({ healthScore: devices.healthScore })
         .from(devices)
@@ -108,11 +72,7 @@ export function createProcessCampaignWorker() {
         .limit(1)
 
       if ((device?.healthScore ?? 100) < 30) {
-        await db
-          .update(campaigns)
-          .set({ status: 'paused', updatedAt: new Date() })
-          .where(eq(campaigns.id, campaignId))
-
+        await db.update(campaigns).set({ status: 'paused', updatedAt: new Date() }).where(eq(campaigns.id, campaignId))
         await db.insert(spamAlerts).values({
           userId,
           deviceId: campaign.deviceId,
@@ -124,11 +84,9 @@ export function createProcessCampaignWorker() {
 
       const dailyLimit = await getDailyLimit(userId)
       const todaySent = await countTodaySent(campaign.deviceId)
-
       if (todaySent >= dailyLimit) return
 
       const remaining = dailyLimit - todaySent
-
       const recipients = await db
         .select()
         .from(campaignRecipients)
@@ -147,15 +105,19 @@ export function createProcessCampaignWorker() {
       const delayMs = Math.max(MIN_DELAY_MS, campaign.delayMs)
 
       for (const recipient of recipients) {
-        const payload: { type: string; content?: string; mediaUrl?: string; caption?: string } = {
-          type: campaign.messageType,
+        let waMessageId: string | null = null
+        try {
+          waMessageId = await manager.sendMessage(campaign.deviceId, recipient.phoneNumber, {
+            type: campaign.messageType,
+            content: campaign.content ?? undefined,
+            mediaUrl: campaign.mediaUrl ?? undefined,
+            caption: campaign.caption ?? undefined,
+          })
+        } catch (err) {
+          console.error(`[Campaign] send failed for ${recipient.phoneNumber}:`, err)
         }
-        if (campaign.content) payload.content = campaign.content
-        if (campaign.mediaUrl) payload.mediaUrl = campaign.mediaUrl
-        if (campaign.caption) payload.caption = campaign.caption
-        const ok = await sendViaWorker(campaign.deviceId, recipient.phoneNumber, payload)
 
-        if (ok) {
+        if (waMessageId) {
           const [msg] = await db
             .insert(messages)
             .values({
@@ -169,6 +131,7 @@ export function createProcessCampaignWorker() {
               mediaUrl: campaign.mediaUrl ?? null,
               caption: campaign.caption ?? null,
               status: 'sent',
+              waMessageId,
               sentAt: new Date(),
             })
             .returning({ id: messages.id })
@@ -192,7 +155,6 @@ export function createProcessCampaignWorker() {
         await sleep(delayMs)
       }
 
-      // Re-check if more pending recipients exist
       const pendingRows = await db
         .select({ value: count() })
         .from(campaignRecipients)
@@ -208,6 +170,6 @@ export function createProcessCampaignWorker() {
           .where(eq(campaigns.id, campaignId))
       }
     },
-    { connection: redisConn, concurrency: 2 },
+    { connection: bullMQConnection, concurrency: 2 },
   )
 }
