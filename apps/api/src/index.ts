@@ -25,12 +25,17 @@ const PORT = Number(process.env['PORT'] ?? 8000)
 const app = new Hono()
 
 app.use(logger())
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3002',
+  'https://app.wacent.io',
+  'https://wacent.io',
+  'https://www.wacent.io',
+  process.env['FRONTEND_URL'],
+].filter(Boolean) as string[]
+
 app.use('*', cors({
-  origin: [
-    'http://localhost:3000',
-    'https://wacent-web.vercel.app',
-    process.env['FRONTEND_URL'] ?? '',
-  ],
+  origin: allowedOrigins,
   allowHeaders: ['Content-Type', 'Authorization'],
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true,

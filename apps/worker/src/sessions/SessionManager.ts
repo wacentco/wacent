@@ -118,8 +118,8 @@ export class SessionManager {
   async stopSession(deviceId: string): Promise<void> {
     const entry = this.sessions.get(deviceId)
     if (!entry) return
-    await entry.socket.logout()
-    this.sessions.delete(deviceId)
+    entry.socket.end(undefined)
+    await db.update(devices).set({ status: 'disconnected', updatedAt: new Date() }).where(eq(devices.id, deviceId))
   }
 
   private async checkRateLimit(deviceId: string): Promise<void> {
