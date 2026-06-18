@@ -20,6 +20,14 @@ import { privacyRoutes } from './routes/privacy.js'
 import { adminRoutes } from './routes/admin.js'
 import { startEventSubscriber } from './lib/eventSubscriber.js'
 
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err)
+})
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason)
+})
+
 const PORT = Number(process.env['PORT'] ?? 8000)
 
 const app = new Hono()

@@ -90,8 +90,9 @@ deviceRoutes.post('/', planGuard, zValidator('json', CreateDeviceSchema), async 
     return c.json({ error: { code: 'CREATE_FAILED', message: 'Failed to create device' } }, 500)
   }
 
-  // Start session on worker (non-blocking — QR will be ready shortly)
-  void workerPost(`/internal/sessions/${device.id}/start`)
+  workerPost(`/internal/sessions/${device.id}/start`).catch((err) =>
+    console.warn('Worker start failed (non-critical):', err),
+  )
 
   return c.json({ data: device, message: 'Device created. Scan QR to connect.' }, 201)
 })
@@ -144,7 +145,11 @@ deviceRoutes.post('/:id/disconnect', async (c) => {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Device not found' } }, 404)
   }
 
-  await workerPost(`/internal/sessions/${id}/stop`)
+  try {
+    await workerPost(`/internal/sessions/${id}/stop`)
+  } catch (err) {
+    console.warn('Worker stop failed (non-critical):', err)
+  }
   await db.update(devices).set({ status: 'disconnected' }).where(eq(devices.id, id))
 
   return c.json({ data: { id }, message: 'Device disconnected' })
@@ -164,7 +169,9 @@ deviceRoutes.post('/:id/reconnect', async (c) => {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Device not found' } }, 404)
   }
 
-  void workerPost(`/internal/sessions/${id}/start`)
+  workerPost(`/internal/sessions/${id}/start`).catch((err) =>
+    console.warn('Worker start failed (non-critical):', err),
+  )
 
   return c.json({ data: { id }, message: 'Reconnecting...' })
 })
