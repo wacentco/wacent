@@ -2,8 +2,8 @@
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { db } from '@wacent/db'
-import { devices } from '@wacent/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { campaigns, campaignRecipients, devices, messages, spamAlerts, usageLogs } from '@wacent/db/schema'
+import { eq, and, inArray } from 'drizzle-orm'
 import { CreateDeviceSchema } from '@wacent/types'
 import { flexAuth } from '../middleware/flexAuth.js'
 import { planGuard } from '../middleware/planGuard.js'
@@ -219,8 +219,24 @@ deviceRoutes.delete('/:id', async (c) => {
   try {
     await workerPost(`/internal/sessions/${id}/stop`)
   } catch (err) {
-    console.error('Worker stop failed during delete, continuing:', err)
+    console.warn('Worker stop failed during delete, continuing:', err)
   }
+
+  // Cascade delete in FK-safe order
+  const deviceCampaigns = await db
+    .select({ id: campaigns.id })
+    .from(campaigns)
+    .where(eq(campaigns.deviceId, id))
+
+  const campaignIds = deviceCampaigns.map((c) => c.id)
+
+  if (campaignIds.length > 0) {
+    await db.delete(campaignRecipients).where(inArray(campaignRecipients.campaignId, campaignIds))
+  }
+  await db.delete(messages).where(eq(messages.deviceId, id))
+  await db.delete(campaigns).where(eq(campaigns.deviceId, id))
+  await db.delete(spamAlerts).where(eq(spamAlerts.deviceId, id))
+  await db.delete(usageLogs).where(eq(usageLogs.deviceId, id))
   await db.delete(devices).where(eq(devices.id, id))
 
   return c.json({ data: { id }, message: 'Device deleted' })
