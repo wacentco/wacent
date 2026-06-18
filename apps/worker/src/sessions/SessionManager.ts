@@ -96,6 +96,18 @@ export class SessionManager {
     socket.ev.on('messages.upsert', (upsert: { messages: WAMessage[]; type: MessageUpsertType }) => {
       void onMessage(deviceId, upsert, this.redis)
     })
+
+    socket.ev.on('messages.update', (updates: { update: { status?: number }; key: { id?: string | null } }[]) => {
+      for (const update of updates) {
+        const status = update.update.status
+        const waMessageId = update.key.id
+        if (!status || !waMessageId) continue
+        void this.redis.publish(
+          'wacent:events:status',
+          JSON.stringify({ deviceId, waMessageId, status, timestamp: new Date().toISOString() }),
+        )
+      }
+    })
   }
 
   async stopSession(deviceId: string): Promise<void> {

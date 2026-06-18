@@ -21,6 +21,8 @@ import { adminRoutes } from './routes/admin.js'
 import { createWarmDeviceWorker } from './jobs/warmDevice.js'
 import { createHealthCheckWorker, resetDailyCounters } from './jobs/healthCheck.js'
 import { createProcessCampaignWorker } from './jobs/processCampaign.js'
+import { createDeliverWebhookWorker } from './jobs/deliverWebhook.js'
+import { startEventSubscriber } from './lib/eventSubscriber.js'
 import { createWarmDeviceQueue, createHealthCheckQueue } from '@wacent/queue'
 
 const PORT = Number(process.env['PORT'] ?? 8000)
@@ -84,6 +86,13 @@ serve({ fetch: app.fetch, port: PORT }, async () => {
 
   // Campaign processor
   createProcessCampaignWorker()
+
+  // Webhook delivery worker
+  createDeliverWebhookWorker()
+
+  // Subscribe to message status updates from worker
+  const redisSub = redis.duplicate()
+  startEventSubscriber(redisSub)
 
   console.log('Workers and crons initialized')
 })
