@@ -56,6 +56,7 @@ export function createProcessCampaignWorker(manager: SessionManager) {
     QUEUE_NAMES.PROCESS_CAMPAIGN,
     async (job) => {
       const { campaignId, userId, batchOffset } = job.data
+      console.log(`[ProcessCampaign] Processing job ${job.id} — campaignId=${campaignId} offset=${batchOffset}`)
 
       const [campaign] = await db
         .select()

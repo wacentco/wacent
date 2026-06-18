@@ -21,7 +21,8 @@ function calcHealthDelta(sentToday: number, failedToday: number): number {
 export function createHealthCheckWorker() {
   return new Worker(
     QUEUE_NAMES.HEALTH_CHECK,
-    async () => {
+    async (job) => {
+      console.log(`[HealthCheck] Processing job ${job.id}`)
       const connectedDevices = await db
         .select({
           id: devices.id,

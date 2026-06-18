@@ -12,6 +12,7 @@ export function createDeliverWebhookWorker() {
     QUEUE_NAMES.DELIVER_WEBHOOK,
     async (job) => {
       const { webhookId, eventType, payload } = job.data
+      console.log(`[DeliverWebhook] Processing job ${job.id} — webhookId=${webhookId} event=${eventType}`)
 
       const [webhook] = await db
         .select()

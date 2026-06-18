@@ -15,12 +15,22 @@ import { createWarmDeviceQueue, createHealthCheckQueue } from '@wacent/queue'
 const PORT = Number(process.env['PORT'] ?? 3001)
 const manager = new SessionManager(redis)
 
+function attachErrorLogger(worker: { on: (event: string, cb: (...args: unknown[]) => void) => void }, name: string) {
+  worker.on('failed', (job: unknown, err: unknown) => {
+    const jobId = (job as { id?: string } | null)?.id ?? 'unknown'
+    console.error(`[${name}] Job ${jobId} failed:`, err)
+  })
+  worker.on('error', (err: unknown) => {
+    console.error(`[${name}] Worker error:`, err)
+  })
+}
+
 // BullMQ workers
-createSendMessageWorker(manager)
-createDeliverWebhookWorker()
-createProcessCampaignWorker(manager)
-createWarmDeviceWorker(manager)
-createHealthCheckWorker()
+attachErrorLogger(createSendMessageWorker(manager), 'SendMessage')
+attachErrorLogger(createDeliverWebhookWorker(), 'DeliverWebhook')
+attachErrorLogger(createProcessCampaignWorker(manager), 'ProcessCampaign')
+attachErrorLogger(createWarmDeviceWorker(manager), 'WarmDevice')
+attachErrorLogger(createHealthCheckWorker(), 'HealthCheck')
 
 const app = new Hono()
 app.use(logger())

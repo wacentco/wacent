@@ -98,7 +98,8 @@ async function warmOneDevice(
 export function createWarmDeviceWorker(manager: SessionManager) {
   return new Worker<WarmDeviceJobData>(
     QUEUE_NAMES.WARM_DEVICE,
-    async () => {
+    async (job) => {
+      console.log(`[WarmDevice] Processing job ${job.id} — sweep`)
       const eligible = await db
         .select({ id: devices.id, userId: devices.userId, warmProgress: devices.warmProgress })
         .from(devices)

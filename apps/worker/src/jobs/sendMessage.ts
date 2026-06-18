@@ -12,6 +12,7 @@ export function createSendMessageWorker(manager: SessionManager) {
     QUEUE_NAMES.SEND_MESSAGE,
     async (job) => {
       const { messageId, deviceId, toNumber, type, content, mediaUrl, caption } = job.data
+      console.log(`[SendMessage] Processing job ${job.id} — messageId=${messageId} deviceId=${deviceId} to=${toNumber}`)
 
       try {
         const waMessageId = await manager.sendMessage(deviceId, toNumber, { type, content, mediaUrl, caption })
@@ -19,7 +20,9 @@ export function createSendMessageWorker(manager: SessionManager) {
           .update(messages)
           .set({ status: 'sent', waMessageId, sentAt: new Date(), updatedAt: new Date() })
           .where(eq(messages.id, messageId))
+        console.log(`[SendMessage] Done job ${job.id} — waMessageId=${waMessageId}`)
       } catch (err) {
+        console.error(`[SendMessage] Failed job ${job.id} — messageId=${messageId}:`, err)
         await db
           .update(messages)
           .set({
