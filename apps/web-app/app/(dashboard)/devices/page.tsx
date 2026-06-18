@@ -54,7 +54,7 @@ function Tooltip({ text, children, className }: { text: string; children: React.
     >
       {children}
       {visible && (
-        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[90vw] rounded-lg border border-white/10 bg-gray-900 p-3 text-center text-xs text-text-secondary shadow-lg">
+        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 max-w-[90vw] rounded-lg border border-white/10 bg-gray-900 p-3 text-center text-xs text-text-secondary shadow-lg">
           {text}
           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white/10" />
         </div>
