@@ -26,42 +26,6 @@ const STATUS_TOOLTIPS: Record<string, string> = {
   banned: 'This number has been banned by WhatsApp. You will need to use a different number.',
 }
 
-function Tooltip({ text, children, className }: { text: string; children: React.ReactNode; className?: string }) {
-  const [visible, setVisible] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const show = () => {
-    setVisible(true)
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => setVisible(false), 3000)
-  }
-
-  const hide = () => {
-    setVisible(false)
-    if (timerRef.current) clearTimeout(timerRef.current)
-  }
-
-  useEffect(() => () => {
-    if (timerRef.current) clearTimeout(timerRef.current)
-  }, [])
-
-  return (
-    <div
-      className={`relative ${className ?? ''}`}
-      onMouseEnter={show}
-      onMouseLeave={hide}
-      onClick={show}
-    >
-      {children}
-      {visible && (
-        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 max-w-[90vw] rounded-lg border border-white/10 bg-gray-900 p-3 text-center text-xs text-text-secondary shadow-lg">
-          {text}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white/10" />
-        </div>
-      )}
-    </div>
-  )
-}
 
 function InfoButton({ text }: { text: string }) {
   const [visible, setVisible] = useState(false)
@@ -253,9 +217,10 @@ export default function DevicesPage() {
                   <p className="text-sm font-semibold text-text-primary">{device.name}</p>
                   <p className="text-xs text-text-muted mt-0.5">{device.phoneNumber ?? 'No number yet'}</p>
                 </div>
-                <Tooltip text={STATUS_TOOLTIPS[device.status] ?? ''}>
+                <div className="flex items-center gap-1">
                   <StatusBadge status={device.status as 'connected' | 'connecting' | 'disconnected' | 'banned'} />
-                </Tooltip>
+                  <InfoButton text={STATUS_TOOLTIPS[device.status] ?? ''} />
+                </div>
               </div>
 
               <HealthBar score={device.healthScore ?? 100} />
