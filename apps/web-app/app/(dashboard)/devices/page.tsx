@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Smartphone, Trash2, WifiOff, QrCode, X, AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
@@ -26,13 +26,39 @@ const STATUS_TOOLTIPS: Record<string, string> = {
   banned: 'This number has been banned by WhatsApp. You will need to use a different number.',
 }
 
-function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
+function Tooltip({ text, children, className }: { text: string; children: React.ReactNode; className?: string }) {
+  const [visible, setVisible] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const show = () => {
+    setVisible(true)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => setVisible(false), 3000)
+  }
+
+  const hide = () => {
+    setVisible(false)
+    if (timerRef.current) clearTimeout(timerRef.current)
+  }
+
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+  }, [])
+
   return (
-    <div className="relative group/tip">
+    <div
+      className={`relative ${className ?? ''}`}
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onClick={show}
+    >
       {children}
-      <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-56 -translate-x-1/2 rounded-lg border border-white/10 bg-gray-900 p-2 text-center text-xs text-text-secondary group-hover/tip:block">
-        {text}
-      </div>
+      {visible && (
+        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[90vw] rounded-lg border border-white/10 bg-gray-900 p-3 text-center text-xs text-text-secondary shadow-lg">
+          {text}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white/10" />
+        </div>
+      )}
     </div>
   )
 }
@@ -204,19 +230,19 @@ export default function DevicesPage() {
 
               <div className="flex gap-2 mt-auto pt-1">
                 {device.status !== 'connected' ? (
-                  <Tooltip text="Connect your WhatsApp number by scanning a QR code. If previously connected, this will reconnect without scanning again.">
+                  <Tooltip className="flex-1" text="Connect your WhatsApp number by scanning a QR code. If previously connected, this will reconnect without scanning again.">
                     <button
                       onClick={() => void openQR(device)}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-primary border border-primary/30 hover:bg-primary/10 transition-colors"
+                      className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-primary border border-primary/30 hover:bg-primary/10 transition-colors"
                     >
                       <QrCode className="w-3.5 h-3.5" /> Connect
                     </button>
                   </Tooltip>
                 ) : (
-                  <Tooltip text="Temporarily pause this WhatsApp connection. Your session is saved — reconnect anytime without scanning a new QR code. Note: if you log out from WhatsApp on your phone, you will need to scan a new QR code.">
+                  <Tooltip className="flex-1" text="Temporarily pause this WhatsApp connection. Your session is saved — reconnect anytime without scanning a new QR code. Note: if you log out from WhatsApp on your phone, you will need to scan a new QR code.">
                     <button
                       onClick={() => void disconnectDevice(device.id)}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-secondary border border-border hover:border-warning hover:text-warning transition-colors"
+                      className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-secondary border border-border hover:border-warning hover:text-warning transition-colors"
                     >
                       <WifiOff className="w-3.5 h-3.5" /> Disconnect
                     </button>
