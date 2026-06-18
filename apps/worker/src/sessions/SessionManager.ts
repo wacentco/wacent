@@ -9,6 +9,9 @@ import {
 } from '@whiskeysockets/baileys'
 import { Boom } from '@hapi/boom'
 import type { Redis } from 'ioredis'
+import { eq } from 'drizzle-orm'
+import { db } from '@wacent/db'
+import { devices } from '@wacent/db/schema'
 import { useRedisAuthState } from './redisAuthState.js'
 import { onQR } from '../handlers/onQR.js'
 import { onStatus } from '../handlers/onStatus.js'
@@ -212,6 +215,24 @@ export class SessionManager {
     }
 
     return result?.key.id ?? ''
+  }
+
+  async restoreActiveSessions(): Promise<void> {
+    const connectedDevices = await db
+      .select({ id: devices.id })
+      .from(devices)
+      .where(eq(devices.status, 'connected'))
+
+    console.log(`[SessionManager] Restoring ${connectedDevices.length} session(s)...`)
+
+    for (const device of connectedDevices) {
+      try {
+        await this.startSession(device.id)
+        console.log(`[SessionManager] Restored session for device ${device.id}`)
+      } catch (err) {
+        console.error(`[SessionManager] Failed to restore session ${device.id}:`, err)
+      }
+    }
   }
 
   getQR(deviceId: string): string | null {

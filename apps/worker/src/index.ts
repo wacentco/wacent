@@ -47,6 +47,7 @@ app.onError((err, c) => {
 
 serve({ fetch: app.fetch, port: PORT }, async () => {
   console.log(`Worker server running on http://localhost:${PORT}`)
+  await manager.restoreActiveSessions()
 
   // Warm device: daily 09:00 UTC
   const warmQueue = createWarmDeviceQueue(bullMQConnection)
