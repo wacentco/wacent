@@ -1,4 +1,4 @@
-﻿services:
+services:
   postgres:
     image: postgres:16-alpine
     environment:
@@ -59,15 +59,26 @@
       - ./packages:/app/packages
     restart: unless-stopped
 
-  web:
+  web-app:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/web-app/Dockerfile
     depends_on:
       - api
     ports:
       - "3000:3000"
-    env_file: apps/web/.env.local
+    env_file: apps/web-app/.env.local
+    restart: unless-stopped
+
+  web-marketing:
+    build:
+      context: .
+      dockerfile: apps/web-marketing/Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: http://localhost:3000
+        NEXT_PUBLIC_CONTACT_EMAIL: hello@wacent.io
+    ports:
+      - "3002:3002"
     restart: unless-stopped
 
 volumes:
