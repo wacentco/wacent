@@ -4,8 +4,8 @@ import { devices, messages } from '@wacent/db/schema'
 import { eq, and, lt } from 'drizzle-orm'
 import { QUEUE_NAMES } from '@wacent/queue'
 import type { WarmDeviceJobData } from '@wacent/queue'
+import { redisConn } from '../lib/redis.js'
 
-const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
 const WORKER_URL = process.env['WORKER_URL'] ?? 'http://localhost:3001'
 const WORKER_SECRET = process.env['WORKER_SECRET'] ?? ''
 
@@ -100,8 +100,6 @@ async function warmOneDevice(device: { id: string; userId: string; warmProgress:
 }
 
 export function createWarmDeviceWorker() {
-  const conn = { host: new URL(REDIS_URL).hostname, port: Number(new URL(REDIS_URL).port) || 6379 }
-
   return new Worker<WarmDeviceJobData>(
     QUEUE_NAMES.WARM_DEVICE,
     async (_job) => {
@@ -124,6 +122,6 @@ export function createWarmDeviceWorker() {
         await warmOneDevice(device)
       }
     },
-    { connection: conn, concurrency: 1 },
+    { connection: redisConn, concurrency: 1 },
   )
 }

@@ -4,8 +4,8 @@ import { campaigns, campaignRecipients, devices, messages, users, plans, spamAle
 import { eq, and, count } from 'drizzle-orm'
 import { QUEUE_NAMES, createProcessCampaignQueue } from '@wacent/queue'
 import type { ProcessCampaignJobData } from '@wacent/queue'
+import { redisConn } from '../lib/redis.js'
 
-const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
 const WORKER_URL = process.env['WORKER_URL'] ?? 'http://localhost:3001'
 const WORKER_SECRET = process.env['WORKER_SECRET'] ?? ''
 
@@ -85,8 +85,7 @@ async function sendViaWorker(
 }
 
 export function createProcessCampaignWorker() {
-  const conn = { host: new URL(REDIS_URL).hostname, port: Number(new URL(REDIS_URL).port) || 6379 }
-  const queue = createProcessCampaignQueue(conn)
+  const queue = createProcessCampaignQueue(redisConn)
 
   return new Worker<ProcessCampaignJobData>(
     QUEUE_NAMES.PROCESS_CAMPAIGN,
@@ -209,6 +208,6 @@ export function createProcessCampaignWorker() {
           .where(eq(campaigns.id, campaignId))
       }
     },
-    { connection: conn, concurrency: 2 },
+    { connection: redisConn, concurrency: 2 },
   )
 }

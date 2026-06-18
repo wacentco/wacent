@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { HTTPException } from 'hono/http-exception'
-import { Redis } from 'ioredis'
+import { redis, redisConn } from './lib/redis.js'
 import { rateLimit } from './middleware/ratelimit.js'
 import { authRoutes } from './routes/auth.js'
 import { apiKeyRoutes } from './routes/api-keys.js'
@@ -24,8 +24,6 @@ import { createProcessCampaignWorker } from './jobs/processCampaign.js'
 import { createWarmDeviceQueue, createHealthCheckQueue } from '@wacent/queue'
 
 const PORT = Number(process.env['PORT'] ?? 8000)
-const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
-const redis = new Redis(REDIS_URL)
 
 const app = new Hono()
 
@@ -68,8 +66,6 @@ app.onError((err, c) => {
 
 serve({ fetch: app.fetch, port: PORT }, async () => {
   console.log(`API server running on http://localhost:${PORT}`)
-
-  const redisConn = { host: new URL(REDIS_URL).hostname, port: Number(new URL(REDIS_URL).port) || 6379 }
 
   // Warm device: daily 09:00 UTC
   createWarmDeviceWorker()

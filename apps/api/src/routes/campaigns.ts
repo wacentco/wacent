@@ -7,9 +7,9 @@ import { eq, and, desc } from 'drizzle-orm'
 import { CreateCampaignSchema, UpdateCampaignSchema } from '@wacent/types'
 import { createProcessCampaignQueue } from '@wacent/queue'
 import { flexAuth } from '../middleware/flexAuth.js'
+import { redisConn } from '../lib/redis.js'
 
-const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
-const campaignQueue = createProcessCampaignQueue({ host: new URL(REDIS_URL).hostname, port: Number(new URL(REDIS_URL).port) || 6379 })
+const campaignQueue = createProcessCampaignQueue(redisConn)
 
 const pageSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

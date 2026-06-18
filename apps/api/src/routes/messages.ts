@@ -1,7 +1,7 @@
 ﻿import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
-import { Redis } from 'ioredis'
+import { redis, redisConn } from '../lib/redis.js'
 import { db } from '@wacent/db'
 import { messages, devices } from '@wacent/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
@@ -10,9 +10,7 @@ import { createSendMessageQueue } from '@wacent/queue'
 import { flexAuth } from '../middleware/flexAuth.js'
 import { spamDetect } from '../middleware/spamDetect.js'
 
-const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
-const redis = new Redis(REDIS_URL)
-const sendMessageQueue = createSendMessageQueue({ host: new URL(REDIS_URL).hostname, port: Number(new URL(REDIS_URL).port) || 6379 })
+const sendMessageQueue = createSendMessageQueue(redisConn)
 
 const listQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

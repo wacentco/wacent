@@ -3,8 +3,7 @@ import { db } from '@wacent/db'
 import { devices } from '@wacent/db/schema'
 import { eq } from 'drizzle-orm'
 import { QUEUE_NAMES } from '@wacent/queue'
-
-const REDIS_URL = process.env['REDIS_URL'] ?? 'redis://localhost:6379'
+import { redisConn } from '../lib/redis.js'
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value))
@@ -20,8 +19,6 @@ function calcHealthDelta(sentToday: number, failedToday: number): number {
 }
 
 export function createHealthCheckWorker() {
-  const conn = { host: new URL(REDIS_URL).hostname, port: Number(new URL(REDIS_URL).port) || 6379 }
-
   return new Worker(
     QUEUE_NAMES.HEALTH_CHECK,
     async () => {
@@ -49,7 +46,7 @@ export function createHealthCheckWorker() {
           .where(eq(devices.id, device.id))
       }
     },
-    { connection: conn, concurrency: 1 },
+    { connection: redisConn, concurrency: 1 },
   )
 }
 
