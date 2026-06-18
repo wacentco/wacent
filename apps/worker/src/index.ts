@@ -10,17 +10,17 @@ import { createDeliverWebhookWorker } from './jobs/deliverWebhook.js'
 import { createProcessCampaignWorker } from './jobs/processCampaign.js'
 import { createWarmDeviceWorker } from './jobs/warmDevice.js'
 import { createHealthCheckWorker, resetDailyCounters } from './jobs/healthCheck.js'
+import { Worker } from 'bullmq'
 import { createWarmDeviceQueue, createHealthCheckQueue } from '@wacent/queue'
 
 const PORT = Number(process.env['PORT'] ?? 3001)
 const manager = new SessionManager(redis)
 
-function attachErrorLogger(worker: { on: (event: string, cb: (...args: unknown[]) => void) => void }, name: string) {
-  worker.on('failed', (job: unknown, err: unknown) => {
-    const jobId = (job as { id?: string } | null)?.id ?? 'unknown'
-    console.error(`[${name}] Job ${jobId} failed:`, err)
+function attachErrorLogger(worker: Worker, name: string) {
+  worker.on('failed', (job, err) => {
+    console.error(`[${name}] Job ${job?.id ?? 'unknown'} failed:`, err)
   })
-  worker.on('error', (err: unknown) => {
+  worker.on('error', (err) => {
     console.error(`[${name}] Worker error:`, err)
   })
 }
