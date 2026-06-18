@@ -16,13 +16,23 @@ const patchDeviceSchema = z.object({
 const WORKER_URL = process.env['WORKER_URL'] ?? 'http://localhost:3001'
 const WORKER_SECRET = process.env['WORKER_SECRET'] ?? ''
 
-async function workerPost(path: string, body?: unknown) {
-  const init: RequestInit = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Worker-Secret': WORKER_SECRET },
+async function workerPost(path: string, body?: object) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 10000)
+  try {
+    const res = await fetch(`${WORKER_URL}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Worker-Secret': WORKER_SECRET },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    })
+    return res
+  } catch (err) {
+    console.error(`Worker call failed for ${path}:`, err)
+    throw err
+  } finally {
+    clearTimeout(timeout)
   }
-  if (body !== undefined) init.body = JSON.stringify(body)
-  return fetch(`${WORKER_URL}${path}`, init)
 }
 
 async function workerGet(path: string) {
@@ -200,7 +210,11 @@ deviceRoutes.delete('/:id', async (c) => {
     return c.json({ error: { code: 'NOT_FOUND', message: 'Device not found' } }, 404)
   }
 
-  void workerPost(`/internal/sessions/${id}/stop`)
+  try {
+    await workerPost(`/internal/sessions/${id}/stop`)
+  } catch (err) {
+    console.error('Worker stop failed during delete, continuing:', err)
+  }
   await db.delete(devices).where(eq(devices.id, id))
 
   return c.json({ data: { id }, message: 'Device deleted' })
