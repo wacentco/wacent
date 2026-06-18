@@ -91,8 +91,7 @@ serve({ fetch: app.fetch, port: PORT }, async () => {
   createDeliverWebhookWorker()
 
   // Subscribe to message status updates from worker
-  const redisSub = redis.duplicate()
-  startEventSubscriber(redisSub)
+  startEventSubscriber()
 
   console.log('Workers and crons initialized')
 })

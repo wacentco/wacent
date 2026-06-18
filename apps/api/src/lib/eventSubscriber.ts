@@ -1,9 +1,8 @@
-import type { Redis } from 'ioredis'
 import { db } from '@wacent/db'
 import { messages, webhooks } from '@wacent/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { createDeliverWebhookQueue } from '@wacent/queue'
-import { redisConn } from './redis.js'
+import { redisConn, redisSubscriber } from './redis.js'
 
 interface StatusEvent {
   deviceId: string
@@ -18,15 +17,15 @@ function mapStatus(status: number): { dbStatus: 'delivered' | 'read'; eventType:
   return null
 }
 
-export function startEventSubscriber(redisSub: Redis): void {
+export function startEventSubscriber(): void {
   const webhookQueue = createDeliverWebhookQueue(redisConn)
 
-  void redisSub.subscribe('wacent:events:status', (err) => {
+  void redisSubscriber.subscribe('wacent:events:status', (err) => {
     if (err) console.error('[EventSubscriber] subscribe error:', err)
     else console.log('[EventSubscriber] subscribed to wacent:events:status')
   })
 
-  redisSub.on('message', (channel, raw) => {
+  redisSubscriber.on('message', (channel, raw) => {
     if (channel !== 'wacent:events:status') return
     void (async () => {
       try {

@@ -21,3 +21,10 @@ export const redis = new Redis({
   },
   enableOfflineQueue: false,
 })
+
+export const redisSubscriber = new Redis({
+  ...redisConn,
+  retryStrategy: (times) => Math.min(times * 200, 3000),
+  enableOfflineQueue: true,
+  lazyConnect: false,
+})
