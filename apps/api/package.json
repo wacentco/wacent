@@ -14,12 +14,9 @@
     "@hono/node-server": "^1.12.0",
     "@hono/zod-validator": "^0.2.2",
     "@wacent/db": "workspace:*",
-    "@wacent/queue": "workspace:*",
     "@wacent/types": "workspace:*",
-    "bullmq": "^5.12.0",
     "drizzle-orm": "^0.41.0",
     "hono": "^4.4.0",
-    "ioredis": "^5.4.1",
     "jose": "^5.6.3",
     "stripe": "^22.2.1",
     "zod": "^3.23.0"

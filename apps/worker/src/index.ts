@@ -5,11 +5,10 @@ import { HTTPException } from 'hono/http-exception'
 import { redis, bullMQConnection } from './redis/client.js'
 import { SessionManager } from './sessions/SessionManager.js'
 import { createInternalApi } from './api/internal.js'
-import { createSendMessageWorker } from './jobs/sendMessage.js'
 import { createDeliverWebhookWorker } from './jobs/deliverWebhook.js'
 import { createProcessCampaignWorker } from './jobs/processCampaign.js'
 import { createWarmDeviceWorker } from './jobs/warmDevice.js'
-import { createHealthCheckWorker, resetDailyCounters } from './jobs/healthCheck.js'
+import { createHealthCheckWorker } from './jobs/healthCheck.js'
 import { Worker } from 'bullmq'
 import { createWarmDeviceQueue, createHealthCheckQueue } from '@wacent/queue'
 
@@ -25,8 +24,7 @@ function attachErrorLogger(worker: Worker, name: string) {
   })
 }
 
-// BullMQ workers
-attachErrorLogger(createSendMessageWorker(manager), 'SendMessage')
+// BullMQ workers (send-message is now handled via direct HTTP endpoint)
 attachErrorLogger(createDeliverWebhookWorker(), 'DeliverWebhook')
 attachErrorLogger(createProcessCampaignWorker(manager), 'ProcessCampaign')
 attachErrorLogger(createWarmDeviceWorker(manager), 'WarmDevice')

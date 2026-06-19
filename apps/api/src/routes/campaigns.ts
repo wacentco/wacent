@@ -1,15 +1,12 @@
-﻿import { Hono } from 'hono'
+import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { db } from '@wacent/db'
 import { campaigns, campaignRecipients, devices } from '@wacent/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { CreateCampaignSchema, UpdateCampaignSchema } from '@wacent/types'
-import { createProcessCampaignQueue } from '@wacent/queue'
+import { workerFetch } from '../lib/workerFetch.js'
 import { flexAuth } from '../middleware/flexAuth.js'
-import { redisConn } from '../lib/redis.js'
-
-const campaignQueue = createProcessCampaignQueue(redisConn)
 
 const pageSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -170,7 +167,9 @@ campaignRoutes.post('/:id/start', async (c) => {
     .set({ status: 'sending', startedAt: new Date(), updatedAt: new Date() })
     .where(eq(campaigns.id, id))
 
-  await campaignQueue.add('process', { campaignId: id, userId, batchOffset: 0 })
+  workerFetch('/internal/jobs/process-campaign', { campaignId: id, userId, batchOffset: 0 }).catch((err) =>
+    console.warn('Worker campaign trigger failed (non-critical):', err),
+  )
 
   return c.json({ data: { id, status: 'sending' }, message: 'Campaign started' })
 })

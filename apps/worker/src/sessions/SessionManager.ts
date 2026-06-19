@@ -16,6 +16,7 @@ import { useRedisAuthState } from './redisAuthState.js'
 import { onQR } from '../handlers/onQR.js'
 import { onStatus } from '../handlers/onStatus.js'
 import { onMessage } from '../handlers/onMessage.js'
+import { onMessageStatus } from '../handlers/onMessageStatus.js'
 import { validateWhatsAppNumber } from '../handlers/validateNumber.js'
 
 export type SessionStatus = 'disconnected' | 'connecting' | 'connected'
@@ -106,11 +107,7 @@ export class SessionManager {
         const status = update.update.status
         const waMessageId = update.key.id
         if (!status || !waMessageId) continue
-        const statusNum = status as number
-        void this.redis.publish(
-          'wacent:events:status',
-          JSON.stringify({ deviceId, waMessageId, status: statusNum, timestamp: new Date().toISOString() }),
-        )
+        void onMessageStatus(deviceId, waMessageId, status as number, new Date().toISOString())
       }
     })
   }

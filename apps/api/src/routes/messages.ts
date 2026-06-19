@@ -1,16 +1,13 @@
-﻿import { Hono } from 'hono'
+import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
-import { redis, redisConn } from '../lib/redis.js'
 import { db } from '@wacent/db'
 import { messages, devices } from '@wacent/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { SendMessageSchema } from '@wacent/types'
-import { createSendMessageQueue } from '@wacent/queue'
+import { workerFetch } from '../lib/workerFetch.js'
 import { flexAuth } from '../middleware/flexAuth.js'
 import { spamDetect } from '../middleware/spamDetect.js'
-
-const sendMessageQueue = createSendMessageQueue(redisConn)
 
 const listQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -21,7 +18,7 @@ export const messageRoutes = new Hono()
 
 messageRoutes.use(flexAuth)
 
-messageRoutes.post('/send', spamDetect(redis), zValidator('json', SendMessageSchema), async (c) => {
+messageRoutes.post('/send', spamDetect, zValidator('json', SendMessageSchema), async (c) => {
   const { userId } = c.get('auth')
   const input = c.req.valid('json')
 
@@ -58,7 +55,7 @@ messageRoutes.post('/send', spamDetect(redis), zValidator('json', SendMessageSch
     return c.json({ error: { code: 'CREATE_FAILED', message: 'Failed to create message' } }, 500)
   }
 
-  await sendMessageQueue.add('send', {
+  await workerFetch('/internal/jobs/send-message', {
     messageId: message.id,
     userId,
     deviceId: input.whatsapp_account_id,
@@ -67,7 +64,6 @@ messageRoutes.post('/send', spamDetect(redis), zValidator('json', SendMessageSch
     content: input.content,
     mediaUrl: input.media_url,
     caption: input.caption,
-    campaignId: undefined,
   })
 
   return c.json({ data: { message_id: message.id, status: message.status, created_at: message.createdAt } }, 202)

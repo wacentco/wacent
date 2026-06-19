@@ -3,7 +3,6 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { HTTPException } from 'hono/http-exception'
-import { redis } from './lib/redis.js'
 import { rateLimit } from './middleware/ratelimit.js'
 import { authRoutes } from './routes/auth.js'
 import { apiKeyRoutes } from './routes/api-keys.js'
@@ -18,7 +17,6 @@ import { contactRoutes } from './routes/contacts.js'
 import { contactListRoutes } from './routes/contact-lists.js'
 import { privacyRoutes } from './routes/privacy.js'
 import { adminRoutes } from './routes/admin.js'
-import { startEventSubscriber } from './lib/eventSubscriber.js'
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception:', err)
@@ -48,7 +46,7 @@ app.use('*', cors({
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true,
 }))
-app.use('/v1/*', rateLimit(redis))
+app.use('/v1/*', rateLimit)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
@@ -76,5 +74,4 @@ app.onError((err, c) => {
 
 serve({ fetch: app.fetch, port: PORT }, () => {
   console.log(`API server running on http://localhost:${PORT}`)
-  startEventSubscriber()
 })

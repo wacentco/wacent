@@ -5,6 +5,7 @@ import { db } from '@wacent/db'
 import { campaigns, campaignRecipients, devices, messages, spamAlerts, usageLogs } from '@wacent/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
 import { CreateDeviceSchema } from '@wacent/types'
+import { workerFetch, workerGet } from '../lib/workerFetch.js'
 import { flexAuth } from '../middleware/flexAuth.js'
 import { planGuard } from '../middleware/planGuard.js'
 
@@ -12,40 +13,6 @@ const patchDeviceSchema = z.object({
   autoWarm: z.boolean().optional(),
   name: z.string().min(1).max(255).optional(),
 })
-
-const WORKER_URL = process.env['WORKER_URL'] ?? 'http://localhost:3001'
-const WORKER_SECRET = process.env['WORKER_SECRET'] ?? ''
-
-async function workerFetch(path: string, body?: object, method = 'POST') {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 10000)
-
-  const init: RequestInit = {
-    method,
-    headers: { 'Content-Type': 'application/json', 'X-Worker-Secret': WORKER_SECRET },
-    signal: controller.signal,
-  }
-
-  if (body !== undefined) {
-    init.body = JSON.stringify(body)
-  }
-
-  try {
-    const res = await fetch(`${WORKER_URL}${path}`, init)
-    return res
-  } catch (err) {
-    console.error(`Worker call failed for ${path}:`, err)
-    throw err
-  } finally {
-    clearTimeout(timeout)
-  }
-}
-
-async function workerGet(path: string) {
-  return fetch(`${WORKER_URL}${path}`, {
-    headers: { 'X-Worker-Secret': WORKER_SECRET },
-  })
-}
 
 export const deviceRoutes = new Hono()
 
